@@ -1,10 +1,7 @@
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, Float, DateTime, func
-
-
-class Base(DeclarativeBase):
-    pass
+from .base import Base
 
 
 class Product(Base):

@@ -1,10 +1,7 @@
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Float, DateTime, JSON, func
-
-
-class Base(DeclarativeBase):
-    pass
+from .base import Base
 
 
 class Job(Base):
