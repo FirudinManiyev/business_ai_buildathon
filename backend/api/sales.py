@@ -11,7 +11,7 @@ from agents.sales_agent import sales_agent
 from utils.mock_data import SALES_CUSTOMERS, SALES_PRODUCTS
 
 
-router = APIRouter(prefix="/api/sales", tags=["sales"])
+router = APIRouter()
 
 
 class SalesCustomer(BaseModel):

@@ -11,7 +11,7 @@ from agents.hr_agent import hr_agent
 from utils.mock_data import CVS, JOB_LISTINGS
 
 
-router = APIRouter(prefix="/api/hr", tags=["hr"])
+router = APIRouter()
 
 
 class CVProfile(BaseModel):

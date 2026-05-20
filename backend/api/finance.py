@@ -11,7 +11,7 @@ from agents.finance_agent import finance_agent
 from utils.mock_data import PRODUCTS, WORKERS
 
 
-router = APIRouter(prefix="/api/finance", tags=["finance"])
+router = APIRouter()
 
 
 class FinanceAnalyzeRequest(BaseModel):
