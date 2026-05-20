@@ -1,3 +1,5 @@
-qroq
+fastapi
+uvicorn
+groq
 dotenv
 sqlalchemy
