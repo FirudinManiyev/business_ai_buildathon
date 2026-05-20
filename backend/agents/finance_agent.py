@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .base_agent import BaseAgent
-from utils.mock_data import JOB_LISTINGS, PRODUCTS
+from ..utils.mock_data import JOB_LISTINGS, PRODUCTS
 
 
 def _build_finance_prompt() -> str:
@@ -24,16 +24,21 @@ def _build_finance_prompt() -> str:
 
 
 class FinanceAgent(BaseAgent):
+    temperature = 0.1
+
     def __init__(self, **kwargs: object) -> None:
         super().__init__(system_prompt=_build_finance_prompt(), **kwargs)
 
-    def analyze(self, finance_profile: Mapping[str, Any]) -> dict[str, Any]:
+    def analyze(self, finance_profile: Mapping[str, Any], *, context: dict[str, Any] | None = None) -> dict[str, Any]:
         prompt = (
             "Analyze these products and salary expectations using the documented finance formulas. "
             "Return valid JSON with keys product_analysis, salary_coverage, recommendations. "
             f"Finance profile: {dict(finance_profile)}"
         )
-        return self.run_json(prompt)
+        payload_context = dict(finance_profile)
+        if context:
+            payload_context.update(context)
+        return self.run_json(prompt, context=payload_context)
 
 
 finance_agent = FinanceAgent()

@@ -26,6 +26,51 @@ PRODUCTS = {
         "sell_price": 245,
         "stock": 34,
     },
+    "wireless_keyboard": {
+        "id": 4,
+        "name": "Wireless Keyboard",
+        "category": "Accessories",
+        "description": "Slim wireless keyboard with silent keys.",
+        "cost_price": 18,
+        "sell_price": 39,
+        "stock": 90,
+    },
+    "cloud_backup_1tb": {
+        "id": 5,
+        "name": "Cloud Backup 1TB",
+        "category": "Services",
+        "description": "One year cloud backup plan for small teams.",
+        "cost_price": 28,
+        "sell_price": 69,
+        "stock": 300,
+    },
+    "desk_lamp_led": {
+        "id": 6,
+        "name": "Desk Lamp LED",
+        "category": "Office",
+        "description": "Adjustable LED desk lamp with warm and cool modes.",
+        "cost_price": 9,
+        "sell_price": 21,
+        "stock": 140,
+    },
+    "noise_cancel_headset": {
+        "id": 7,
+        "name": "Noise Cancel Headset",
+        "category": "Electronics",
+        "description": "Headset for remote meetings and call centers.",
+        "cost_price": 64,
+        "sell_price": 129,
+        "stock": 56,
+    },
+    "projector_hd": {
+        "id": 8,
+        "name": "Projector HD",
+        "category": "Electronics",
+        "description": "Portable HD projector for presentations and demos.",
+        "cost_price": 210,
+        "sell_price": 349,
+        "stock": 22,
+    },
 }
 
 JOB_LISTINGS = {
@@ -58,6 +103,26 @@ JOB_LISTINGS = {
         "salary_min": 2200,
         "salary_max": 3800,
         "location": "Hybrid",
+    },
+    "hr_generalist": {
+        "id": 4,
+        "title": "HR Generalist",
+        "company_name": "PeopleOps Studio",
+        "required_skills": ["recruitment", "interviews", "onboarding"],
+        "experience_years": "3+",
+        "salary_min": 1600,
+        "salary_max": 2900,
+        "location": "Hybrid",
+    },
+    "finance_analyst": {
+        "id": 5,
+        "title": "Finance Analyst",
+        "company_name": "LedgerFlow",
+        "required_skills": ["budgeting", "forecasting", "excel"],
+        "experience_years": "2+",
+        "salary_min": 1700,
+        "salary_max": 3100,
+        "location": "Remote",
     },
 }
 
@@ -218,3 +283,19 @@ SALES_CUSTOMERS = [
 ]
 
 SALES_PRODUCTS = list(PRODUCTS.values())
+
+
+def get_products() -> list[dict]:
+    return list(PRODUCTS.values())
+
+
+def get_jobs() -> list[dict]:
+    return list(JOB_LISTINGS.values())
+
+
+def get_workers() -> list[dict]:
+    return list(WORKERS.values())
+
+
+def get_customers() -> list[dict]:
+    return list(CUSTOMERS.values())

@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .base_agent import BaseAgent
-from utils.mock_data import CVS, JOB_LISTINGS, SKILL_GAP_PRODUCTS
+from ..utils.mock_data import CVS, JOB_LISTINGS, SKILL_GAP_PRODUCTS
 
 
 def _build_hr_prompt() -> str:
@@ -28,16 +28,21 @@ def _build_hr_prompt() -> str:
 
 
 class HRAgent(BaseAgent):
+    temperature = 0.1
+
     def __init__(self, **kwargs: object) -> None:
         super().__init__(system_prompt=_build_hr_prompt(), **kwargs)
 
-    def match(self, cv_profile: Mapping[str, Any]) -> dict[str, Any]:
+    def match(self, cv_profile: Mapping[str, Any], *, context: dict[str, Any] | None = None) -> dict[str, Any]:
         prompt = (
             "Compare this CV against the job listings using the documented scoring methodology. "
             "Return valid JSON with keys matches, skill_gap_products, finance_signal. "
             f"CV profile: {dict(cv_profile)}"
         )
-        return self.run_json(prompt)
+        payload_context = {"cv_data": dict(cv_profile)}
+        if context:
+            payload_context.update(context)
+        return self.run_json(prompt, context=payload_context)
 
 
 hr_agent = HRAgent()

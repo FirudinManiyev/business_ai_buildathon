@@ -5,12 +5,17 @@ from typing import Any, Literal
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
-from groq import Groq
 
-from agents.finance_agent import finance_agent
-from agents.hr_agent import hr_agent
-from agents.sales_agent import sales_agent
-from utils.mock_data import CUSTOMERS, JOB_LISTINGS, PRODUCTS, SALES_CUSTOMERS, WORKERS
+# Groq is optional in dev environments; import if available
+try:
+    from groq import Groq
+except Exception:
+    Groq = None
+
+from ..agents.finance_agent import finance_agent
+from ..agents.hr_agent import hr_agent
+from ..agents.sales_agent import sales_agent
+from ..utils.mock_data import CUSTOMERS, JOB_LISTINGS, PRODUCTS, SALES_CUSTOMERS, WORKERS
 
 
 router = APIRouter()
@@ -80,6 +85,9 @@ def health() -> dict[str, object]:
     if not groq_api_key:
         return {"status": "unhealthy", "groq_api_key": False}
 
+    if Groq is None:
+        return {"status": "unhealthy", "groq_api_key": True, "groq": False, "detail": "groq package not installed"}
+
     try:
         Groq(api_key=groq_api_key).models.list()
     except Exception as exc:
@@ -93,22 +101,38 @@ def run_orchestrator(request: OrchestratorRunRequest) -> dict[str, Any]:
     shared_context: dict[str, Any] = {"scenario": request.scenario, "results": []}
     agents_used: list[str] = []
 
-    hr_input = {**_build_hr_context(request.cv_data), "shared_context": shared_context}
-    hr_result = hr_agent.match(hr_input)
+    hr_input = request.cv_data or {}
+    hr_result = hr_agent.match(
+        hr_input,
+        context={**_build_hr_context(request.cv_data), "shared_context": shared_context},
+    )
     shared_context["hr"] = hr_result
     shared_context["results"].append({"agent": "hr", "result": hr_result})
     agents_used.append("hr")
 
-    finance_input = {**_build_finance_context(hr_result, request.whatif), "shared_context": shared_context}
-    finance_result = finance_agent.analyze(finance_input)
+    finance_input = {
+        **_build_finance_context(hr_result, request.whatif),
+        "shared_context": shared_context,
+    }
+    finance_result = finance_agent.analyze(
+        finance_input,
+        context=finance_input,
+    )
     shared_context["finance"] = finance_result
     shared_context["results"].append({"agent": "finance", "result": finance_result})
     agents_used.append("finance")
 
     customer = _resolve_customer(request.customer_id)
     if request.scenario == "full_analysis" and customer is not None:
-        sales_input = {**_build_sales_context(customer, hr_result, finance_result), "shared_context": shared_context}
-        sales_result = sales_agent.recommend(sales_input)
+        sales_input = {
+            **_build_sales_context(customer, hr_result, finance_result),
+            "shared_context": shared_context,
+            "catalog": list(PRODUCTS.values()),
+        }
+        sales_result = sales_agent.recommend(
+            customer,
+            context=sales_input,
+        )
         shared_context["sales"] = sales_result
         shared_context["results"].append({"agent": "sales", "result": sales_result})
         agents_used.append("sales")

@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from agents.finance_agent import finance_agent
-from utils.mock_data import PRODUCTS, WORKERS
+from ..agents.finance_agent import finance_agent
+from ..utils.mock_data import PRODUCTS, WORKERS
 
 
 router = APIRouter()
@@ -44,7 +44,7 @@ def _finance_sse_stream(profile: dict[str, Any]):
         f"Context profile: {profile}"
     )
 
-    for chunk in finance_agent.stream(prompt):
+    for chunk in finance_agent.stream(prompt, context=profile):
         yield f"data: {json.dumps({'token': chunk})}\n\n"
 
     yield "data: [DONE]\n\n"

@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from agents.sales_agent import sales_agent
-from utils.mock_data import SALES_CUSTOMERS, SALES_PRODUCTS
+from ..agents.sales_agent import sales_agent
+from ..utils.mock_data import SALES_CUSTOMERS, SALES_PRODUCTS
 
 
 router = APIRouter()
@@ -17,6 +17,7 @@ router = APIRouter()
 class SalesCustomer(BaseModel):
     name: str
     age: int | None = None
+    purpose: str | None = None
     goal: str
     interests: list[str] = Field(default_factory=list)
     purchase_history: list[str] = Field(default_factory=list)
@@ -51,7 +52,7 @@ def _sales_sse_stream(customer_payload: dict[str, Any]):
         f"Customer profile: {customer_payload}"
     )
 
-    for chunk in sales_agent.stream(prompt):
+    for chunk in sales_agent.stream(prompt, context={"customer_profile": customer_payload, "catalog": SALES_PRODUCTS}):
         yield f"data: {json.dumps({'token': chunk})}\n\n"
 
     yield "data: [DONE]\n\n"
@@ -64,4 +65,4 @@ def recommend_sales(request: SalesRecommendationRequest):
     if request.stream:
         return StreamingResponse(_sales_sse_stream(customer_payload), media_type="text/event-stream")
 
-    return sales_agent.recommend(customer_payload)
+    return sales_agent.recommend(customer_payload, context={"catalog": SALES_PRODUCTS})

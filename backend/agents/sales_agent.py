@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .base_agent import BaseAgent
-from utils.mock_data import CUSTOMERS, PRODUCTS
+from ..utils.mock_data import CUSTOMERS, PRODUCTS
 
 
 def _build_sales_prompt() -> str:
@@ -21,10 +21,12 @@ def _build_sales_prompt() -> str:
 
 
 class SalesAgent(BaseAgent):
+    temperature = 0.4
+
     def __init__(self, **kwargs: object) -> None:
         super().__init__(system_prompt=_build_sales_prompt(), **kwargs)
 
-    def recommend(self, customer_profile: Mapping[str, Any]) -> dict[str, Any]:
+    def recommend(self, customer_profile: Mapping[str, Any], *, context: dict[str, Any] | None = None) -> dict[str, Any]:
         prompt = (
             "Analyze this customer profile and purchase history, then recommend the Next Best Product. "
             "Use only the mock product catalog. "
@@ -32,7 +34,10 @@ class SalesAgent(BaseAgent):
             "Return valid JSON with keys recommendations, insight, cross_sell. "
             f"Customer profile: {dict(customer_profile)}"
         )
-        return self.run_json(prompt)
+        payload_context = {"customer_profile": dict(customer_profile)}
+        if context:
+            payload_context.update(context)
+        return self.run_json(prompt, context=payload_context)
 
 
 sales_agent = SalesAgent()

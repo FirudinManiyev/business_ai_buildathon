@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from agents.hr_agent import hr_agent
-from utils.mock_data import CVS, JOB_LISTINGS
+from ..agents.hr_agent import hr_agent
+from ..utils.mock_data import CVS, JOB_LISTINGS
 
 
 router = APIRouter()
@@ -45,7 +45,7 @@ def _hr_sse_stream(cv_payload: dict[str, Any]):
         f"CV profile: {cv_payload}"
     )
 
-    for chunk in hr_agent.stream(prompt):
+    for chunk in hr_agent.stream(prompt, context={"cv_data": cv_payload, "job_listings": list(JOB_LISTINGS.values())}):
         yield f"data: {json.dumps({'token': chunk})}\n\n"
 
     yield "data: [DONE]\n\n"
@@ -62,4 +62,4 @@ def analyze_hr(request: HRAnalyzeRequest):
     if request.stream:
         return StreamingResponse(_hr_sse_stream(cv_payload), media_type="text/event-stream")
 
-    return hr_agent.match(cv_payload)
+    return hr_agent.match(cv_payload, context={"job_listings": list(JOB_LISTINGS.values())})
