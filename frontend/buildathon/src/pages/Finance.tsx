@@ -1,76 +1,28 @@
 import { useState } from 'react';
-import { TrendingUp, TrendingDown, Bot, Calculator, PlusCircle, Trash2 } from 'lucide-react';
-
-interface Product {
-  id: number;
-  name: string;
-  cost: string;
-  price: string;
-  qty: string;
-}
-
-interface Report {
-  name: string;
-  revenue: number;
-  totalCost: number;
-  profit: number;
-  margin: number;
-  advice: string;
-  positive: boolean;
-}
-
-function analyze(p: Product): Report {
-  const cost = parseFloat(p.cost) || 0;
-  const price = parseFloat(p.price) || 0;
-  const qty = parseFloat(p.qty) || 0;
-  const revenue = price * qty;
-  const totalCost = cost * qty;
-  const profit = revenue - totalCost;
-  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-
-  let advice = '';
-  let positive = true;
-
-  if (margin > 40) {
-    advice = '🚀 Əla nəticə! Tələb çox yüksəkdir. Daha çox stok alın, satışı genişləndirin. Bu məhsulu reklam etmək üçün əla vaxtdır.';
-    positive = true;
-  } else if (margin > 20) {
-    advice = '✅ Yaxşı gəlir. Xərcləri optimallaşdırsanız marja daha da artacaq. Toplu alış ilə maya dəyərini azaldın.';
-    positive = true;
-  } else if (margin > 5) {
-    advice = '⚠️ Gəlir az. Qiymətinizi 10–15% artırmağı düşünün. Hədəf auditoriyasını daha dəqiq seçin ki, düzgün müştərilər qabağınıza çıxsın.';
-    positive = false;
-  } else if (margin > 0) {
-    advice = '⚠️ Çox az qazanc. Mütləq ya qiyməti artırın, ya da alternativ tədarükçü tapın. Reklam xərclərini azaldın.';
-    positive = false;
-  } else {
-    advice = '🔴 Zərər! Dərhal qiymət strategiyasını dəyişin. Düzgün hədəf kütləsinin qabağına çıxın, qiymətinizi azaldın ki satış artıb ümumi gəlir bərpa olunsun. Maya dəyərini aşağı salmaq üçün yeni tədarükçü axtarın.';
-    positive = false;
-  }
-
-  return { name: p.name || 'Məhsul', revenue, totalCost, profit, margin, advice, positive };
-}
-
-let nextId = 2;
+import { TrendingUp, TrendingDown, Bot, Calculator, Loader2, AlertCircle, ArrowUp } from 'lucide-react';
+import { analyzeFinance, type FinanceResult } from '../services/api';
 
 export default function Finance() {
-  const [products, setProducts] = useState<Product[]>([{ id: 1, name: '', cost: '', price: '', qty: '' }]);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [calculated, setCalculated] = useState(false);
+  const [whatif, setWhatif] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState<FinanceResult | null>(null);
 
-  const update = (id: number, field: keyof Product, value: string) =>
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
-
-  const addRow = () => setProducts((prev) => [...prev, { id: nextId++, name: '', cost: '', price: '', qty: '' }]);
-
-  const removeRow = (id: number) => setProducts((prev) => prev.filter((p) => p.id !== id));
-
-  const calculate = () => {
-    setReports(products.map(analyze));
-    setCalculated(true);
+  const submit = async () => {
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const data = await analyzeFinance(whatif || undefined);
+      setResult(data);
+    } catch {
+      setError('Backend ilə əlaqə qurulamadı. Backend-in işlədiyini yoxlayın.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const totalProfit = reports.reduce((s, r) => s + r.profit, 0);
+  const totalProfit = result?.product_analysis?.reduce((s, p) => s + p.net_profit, 0) ?? 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -78,98 +30,122 @@ export default function Finance() {
         <h1 className="text-4xl font-extrabold text-white mb-2 flex items-center gap-3">
           <Calculator className="text-orange-400" size={36} /> Maliyyə Analizi
         </h1>
-        <p className="text-gray-400">Məhsullarınızın gəlir–xərc balansını hesabla, AI tövsiyəsini al.</p>
+        <p className="text-gray-400">Şirkətin məhsul gəlirliliyini AI ilə analiz et, tövsiyələr al.</p>
       </div>
 
-      {/* Input table */}
-      <div className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 mb-6 overflow-x-auto">
-        <div className="min-w-150">
-          <div className="grid grid-cols-5 gap-3 mb-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">
-            <span>Məhsul adı</span>
-            <span>Maya dəyəri (AZN)</span>
-            <span>Satış qiyməti (AZN)</span>
-            <span>Satış sayı</span>
-            <span></span>
-          </div>
-          {products.map((p) => (
-            <div key={p.id} className="grid grid-cols-5 gap-3 mb-3">
-              {(['name', 'cost', 'price', 'qty'] as const).map((field) => (
-                <input
-                  key={field}
-                  type={field === 'name' ? 'text' : 'number'}
-                  min="0"
-                  placeholder={field === 'name' ? 'Məhsul...' : '0'}
-                  value={p[field]}
-                  onChange={(e) => update(p.id, field, e.target.value)}
-                  className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50 w-full"
-                />
-              ))}
-              <button
-                onClick={() => removeRow(p.id)}
-                disabled={products.length === 1}
-                className="flex items-center justify-center text-gray-600 hover:text-red-400 disabled:opacity-30 transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
+      {/* Trigger form */}
+      <div className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 mb-6 flex flex-col gap-4">
+        <div>
+          <label className="text-gray-400 text-sm mb-1 block">What-if ssenari (isteğe bağlı)</label>
+          <input
+            value={whatif}
+            onChange={(e) => setWhatif(e.target.value)}
+            placeholder="Məs: Əgər qiymətlər 20% artsa nə olar?"
+            className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
+          />
         </div>
-
-        <div className="flex gap-3 mt-2">
-          <button
-            onClick={addRow}
-            className="flex items-center gap-2 text-orange-400 border border-orange-500/30 hover:bg-orange-500/10 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-          >
-            <PlusCircle size={16} /> Məhsul əlavə et
-          </button>
-          <button
-            onClick={calculate}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded-xl text-sm transition-colors"
-          >
-            <Calculator size={16} /> Hesabla
-          </button>
-        </div>
+        <button onClick={submit} disabled={loading}
+          className="self-start flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+          {loading ? <Loader2 size={18} className="animate-spin" /> : <Calculator size={18} />}
+          {loading ? 'AI analiz edir...' : 'Maliyyəni Analiz Et'}
+        </button>
       </div>
 
-      {/* Reports */}
-      {calculated && (
-        <>
-          {/* Summary */}
-          <div className={`rounded-2xl p-5 border mb-6 flex items-center gap-4 ${totalProfit >= 0 ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
-            {totalProfit >= 0 ? <TrendingUp className="text-green-400 shrink-0" size={28} /> : <TrendingDown className="text-red-400 shrink-0" size={28} />}
+      {error && (
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">
+          <AlertCircle size={18} /> {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="flex flex-col gap-6">
+          {/* Summary card */}
+          <div className={`rounded-2xl p-5 border flex items-center gap-4 ${totalProfit >= 0 ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+            {totalProfit >= 0
+              ? <TrendingUp className="text-green-400 shrink-0" size={28} />
+              : <TrendingDown className="text-red-400 shrink-0" size={28} />}
             <div>
-              <p className="text-gray-400 text-sm">Ümumi Xalis Mənfəət</p>
-              <p className={`text-2xl font-extrabold ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} AZN
+              <p className="text-gray-400 text-sm">Ümumi Xalis Mənfəət (bütün məhsullar)</p>
+              <p className={`text-3xl font-extrabold ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} USD
               </p>
             </div>
           </div>
 
-          {/* Per-product reports */}
-          <div className="flex flex-col gap-4">
-            {reports.map((r, i) => (
-              <div key={i} className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-white font-bold text-lg">{r.name}</h3>
-                    <div className="flex flex-wrap gap-4 mt-2 text-sm">
-                      <span className="text-gray-400">Gəlir: <span className="text-white font-semibold">{r.revenue.toFixed(2)} AZN</span></span>
-                      <span className="text-gray-400">Xərc: <span className="text-white font-semibold">{r.totalCost.toFixed(2)} AZN</span></span>
-                      <span className="text-gray-400">Mənfəət: <span className={`font-semibold ${r.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{r.profit >= 0 ? '+' : ''}{r.profit.toFixed(2)} AZN</span></span>
-                      <span className="text-gray-400">Marja: <span className={`font-semibold ${r.margin > 20 ? 'text-green-400' : r.margin > 0 ? 'text-orange-400' : 'text-red-400'}`}>{r.margin.toFixed(1)}%</span></span>
+          {/* Product analysis */}
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4">Məhsul Analizi</h2>
+            <div className="overflow-x-auto rounded-2xl border border-orange-500/20">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-orange-500/20 text-gray-500 text-xs uppercase tracking-wide">
+                    <th className="text-left px-4 py-3">Məhsul</th>
+                    <th className="text-right px-4 py-3">Maya</th>
+                    <th className="text-right px-4 py-3">Satış</th>
+                    <th className="text-right px-4 py-3">Mənfəət</th>
+                    <th className="text-right px-4 py-3">Marja %</th>
+                    <th className="text-right px-4 py-3">Markup %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.product_analysis?.map((p, i) => (
+                    <tr key={i} className="border-b border-orange-500/10 hover:bg-orange-500/5 transition-colors">
+                      <td className="px-4 py-3 text-white font-medium">
+                        <div>{p.product_name}</div>
+                        <div className="text-gray-500 text-xs font-normal mt-0.5">{p.interpretation}</div>
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-400">{p.cost_price}</td>
+                      <td className="px-4 py-3 text-right text-gray-400">{p.sell_price}</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${p.net_profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {p.net_profit >= 0 ? '+' : ''}{p.net_profit}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-semibold ${p.profit_margin_pct >= 20 ? 'text-green-400' : p.profit_margin_pct >= 0 ? 'text-orange-400' : 'text-red-400'}`}>
+                        {p.profit_margin_pct?.toFixed(1)}%
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-400">{p.markup_pct?.toFixed(1)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Salary coverage */}
+          {result.salary_coverage && (
+            <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-5">
+              <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <Bot size={20} className="text-orange-400" /> Maaş Örtüm Analizi
+              </h2>
+              <div className="flex flex-wrap gap-6 text-sm mb-3">
+                <span className="text-gray-400">Hədəf maaş: <span className="text-white font-semibold">{result.salary_coverage.target_salary} USD</span></span>
+                <span className="text-gray-400">Örtülən: <span className={`font-semibold ${result.salary_coverage.salary_coverage_pct >= 100 ? 'text-green-400' : 'text-orange-400'}`}>{result.salary_coverage.salary_coverage_pct?.toFixed(1)}%</span></span>
+              </div>
+              <p className="text-gray-300 text-sm">{result.salary_coverage.interpretation}</p>
+            </div>
+          )}
+
+          {/* AI Recommendations */}
+          {result.recommendations?.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <ArrowUp size={20} className="text-orange-400" /> AI Tövsiyələri
+              </h2>
+              <div className="flex flex-col gap-3">
+                {result.recommendations.map((r, i) => (
+                  <div key={i} className="bg-black/50 border border-orange-500/20 rounded-xl p-4 flex items-start gap-3">
+                    <span className={`text-xs px-2 py-1 rounded-full border shrink-0 mt-0.5 ${r.priority === 'high' ? 'bg-red-500/10 border-red-500/30 text-red-400' : r.priority === 'medium' ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-gray-500/10 border-gray-500/30 text-gray-400'}`}>
+                      {r.priority === 'high' ? 'Yüksək' : r.priority === 'medium' ? 'Orta' : 'Aşağı'}
+                    </span>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{r.action}</p>
+                      <p className="text-gray-400 text-xs mt-1">{r.reason}</p>
                     </div>
                   </div>
-                </div>
-
-                {/* AI advice */}
-                <div className="flex gap-3 items-start bg-orange-500/5 border border-orange-500/20 rounded-xl p-4">
-                  <Bot size={18} className="text-orange-400 shrink-0 mt-0.5" />
-                  <p className="text-gray-300 text-sm">{r.advice}</p>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
