@@ -192,3 +192,29 @@ SKILL_GAP_PRODUCTS = {
         "stock": 140,
     },
 }
+
+SALES_CUSTOMERS = [
+    {
+        "name": "ACME Trading",
+        "age": None,
+        "goal": "bulk_order",
+        "interests": ["electronics", "office equipment"],
+        "purchase_history": ["Laptop Pro 14", "Smart Monitor 27"],
+    },
+    {
+        "name": "NovaTech Studio",
+        "age": None,
+        "goal": "repeat_purchase",
+        "interests": ["accessories", "productivity tools"],
+        "purchase_history": ["Office Mouse", "Smart Monitor 27"],
+    },
+    {
+        "name": "Sara Mammadova",
+        "age": 29,
+        "goal": "career_growth",
+        "interests": ["laptops", "remote work"],
+        "purchase_history": ["Laptop Pro 14"],
+    },
+]
+
+SALES_PRODUCTS = list(PRODUCTS.values())

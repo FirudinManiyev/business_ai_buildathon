@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .base import BaseAgent
-from mock_data import JOB_LISTINGS, PRODUCTS
+from .base_agent import BaseAgent
+from utils.mock_data import JOB_LISTINGS, PRODUCTS
 
 
 def _build_finance_prompt() -> str:
