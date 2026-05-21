@@ -3,20 +3,42 @@ import { AnimatePresence } from 'framer-motion';
 import LightPillar from './components/LightPillar';
 import MainLayout from './layouts/MainLayout';
 import PageTransition from './components/PageTransition';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Unauthorized from './pages/Unauthorized';
 import Recommendations from './pages/Recommendations';
-import Jobs from './pages/Jobs';
 import Finance from './pages/Finance';
+import Products from './pages/user/Products';
+import UserJobs from './pages/user/UserJobs';
+import AdminJobs from './pages/admin/AdminJobs';
+
+function PT({ children }: { children: React.ReactNode }) {
+  return <PageTransition>{children}</PageTransition>;
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-        <Route path="/recommendations" element={<PageTransition><Recommendations /></PageTransition>} />
-        <Route path="/jobs" element={<PageTransition><Jobs /></PageTransition>} />
-        <Route path="/finance" element={<PageTransition><Finance /></PageTransition>} />
+        {/* Public */}
+        <Route path="/" element={<PT><Home /></PT>} />
+        <Route path="/login" element={<PT><Login /></PT>} />
+        <Route path="/register" element={<PT><Register /></PT>} />
+        <Route path="/dashboard" element={<PT><Dashboard /></PT>} />
+        <Route path="/unauthorized" element={<PT><Unauthorized /></PT>} />
+        <Route path="/recommendations" element={<PT><Recommendations /></PT>} />
+
+        {/* User only */}
+        <Route path="/products" element={<PT><ProtectedRoute role="user"><Products /></ProtectedRoute></PT>} />
+        <Route path="/jobs" element={<PT><ProtectedRoute role="user"><UserJobs /></ProtectedRoute></PT>} />
+
+        {/* Admin only */}
+        <Route path="/admin/jobs" element={<PT><ProtectedRoute role="admin"><AdminJobs /></ProtectedRoute></PT>} />
+        <Route path="/finance" element={<PT><ProtectedRoute role="admin"><Finance /></ProtectedRoute></PT>} />
       </Routes>
     </AnimatePresence>
   );
