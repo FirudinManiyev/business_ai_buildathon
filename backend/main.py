@@ -3,11 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 try:
 	from .api.finance import router as finance_router
+	from .api.auth import router as auth_router
 	from .api.hr import router as hr_router
 	from .api.orchestrator import router as orchestrator_router
 	from .api.sales import router as sales_router
 except ImportError:
 	from api.finance import router as finance_router
+	from api.auth import router as auth_router
 	from api.hr import router as hr_router
 	from api.orchestrator import router as orchestrator_router
 	from api.sales import router as sales_router
@@ -38,5 +40,6 @@ def health() -> dict[str, str]:
 
 app.include_router(orchestrator_router, prefix="/api/orchestrator", tags=["orchestrator"])
 app.include_router(sales_router, prefix="/api/sales", tags=["sales"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
 app.include_router(hr_router, prefix="/api/hr", tags=["hr"])
 app.include_router(finance_router, prefix="/api/finance", tags=["finance"])

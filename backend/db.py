@@ -6,8 +6,10 @@ from .models.base import Base
 
 # Import models to ensure they are registered with the Base metadata
 from .models import user, product, order, job, cv  # noqa: F401
+from .models import application  # noqa: F401
 from .models.job import Job
 from .models.product import Product
+from .models.user import User
 try:
     from .utils.mock_data import JOB_LISTINGS, PRODUCTS as MOCK_PRODUCTS
 except Exception:
@@ -26,10 +28,19 @@ engine = create_engine(DATABASE_URL, echo=False, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 
+def _ensure_users_schema() -> None:
+    with engine.begin() as connection:
+        columns = connection.exec_driver_sql("PRAGMA table_info(users)").all()
+        column_names = {column[1] for column in columns}
+        if "purchases" not in column_names:
+            connection.exec_driver_sql("ALTER TABLE users ADD COLUMN purchases JSON DEFAULT '[]'")
+
+
 def init_db():
     """Create the SQLite DB file and all tables defined on Base metadata."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     Base.metadata.create_all(bind=engine)
+    _ensure_users_schema()
     # Seed mock data for jobs and products if tables are empty
     from sqlalchemy import select
     session = SessionLocal()
@@ -68,6 +79,13 @@ def init_db():
             if prod_objs:
                 session.add_all(prod_objs)
                 session.commit()
+
+        if not session.query(User).first():
+            session.add_all([
+                User(full_name="Admin", email="admin@biznesbayt.az", password_hash="admin123", purpose="admin", purchases=[]),
+                User(full_name="Test İstifadəçi", email="user@test.az", password_hash="user123", purpose="user", purchases=[]),
+            ])
+            session.commit()
     finally:
         session.close()
 

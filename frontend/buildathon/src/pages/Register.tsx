@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Mail, Lock, User, AlertCircle, UserCheck, ShieldCheck } from 'lucide-react';
@@ -11,13 +11,17 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' as Role });
   const [error, setError] = useState('');
 
-  if (user) { navigate('/dashboard', { replace: true }); return null; }
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
 
-  function handleSubmit(e: React.FormEvent) {
+  if (user) return null;
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     try {
-      register(form.name, form.email, form.password, form.role);
+      await register(form.name, form.email, form.password, form.role);
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.message);
