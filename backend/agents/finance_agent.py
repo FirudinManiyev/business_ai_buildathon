@@ -42,8 +42,7 @@ class FinanceAgent(BaseAgent):
 
         product_analysis: list[dict[str, Any]] = []
         total_revenue = 0.0
-        total_cost = 0.0
-        total_net_profit = 0.0
+        total_cost_products = 0.0
 
         for product in products:
             quantity = self._resolve_quantity(product)
@@ -58,8 +57,7 @@ class FinanceAgent(BaseAgent):
             markup_pct = (net_profit / cost * 100) if cost else 0.0
 
             total_revenue += revenue
-            total_cost += cost
-            total_net_profit += net_profit
+            total_cost_products += cost
 
             product_analysis.append(
                 {
@@ -77,6 +75,22 @@ class FinanceAgent(BaseAgent):
                 }
             )
 
+        # Include salaries and other operating costs into total cost
+        salary_total = 0.0
+        workers = payload.get("workers") or []
+        if isinstance(workers, list):
+            for w in workers:
+                try:
+                    salary_total += float(w.get("salary", 0) or 0)
+                except Exception:
+                    continue
+
+        # Allow explicit base other costs
+        other_costs = float(payload.get("other_costs") or payload.get("costs") or 0)
+
+        total_cost = total_cost_products + salary_total + other_costs
+        total_net_profit = total_revenue - total_cost
+
         salary_coverage_pct = (total_net_profit / target_salary * 100) if target_salary else 0.0
 
         return {
@@ -88,6 +102,8 @@ class FinanceAgent(BaseAgent):
                 "interpretation": self._salary_interpretation(total_net_profit, target_salary),
                 "total_revenue": round(total_revenue, 2),
                 "total_cost": round(total_cost, 2),
+                "salary_total": round(salary_total, 2),
+                "other_costs": round(other_costs, 2),
             },
             "recommendations": self._build_recommendations(total_net_profit, target_salary, whatif_scenario, hr_signal),
         }
@@ -169,6 +185,156 @@ class FinanceAgent(BaseAgent):
                 "priority": "low",
             },
         ]
+
+    def apply_whatif(self, base: Mapping[str, Any], whatif: Mapping[str, Any]) -> dict[str, Any]:
+        """
+        Apply a structured what-if scenario to base financials and return
+        new_values, deltas, classification, explanation and recommendation.
+        Supported actions: 'hire', 'ad_spend', 'price_change', 'volume_change', 'sales_delta', 'costs_delta'
+        """
+        # Resolve base values
+        # sales: either explicit or computed from products
+        sales = float(base.get("sales") or 0)
+        products = base.get("products") or []
+        if not sales and isinstance(products, list) and products:
+            for p in products:
+                try:
+                    qty = int(p.get("quantity", p.get("units", p.get("stock", 1))))
+                except Exception:
+                    qty = 1
+                sales += float(p.get("sell_price", 0)) * qty
+
+        # product costs
+        product_costs = 0.0
+        if isinstance(products, list) and products:
+            for p in products:
+                try:
+                    qty = int(p.get("quantity", p.get("units", p.get("stock", 1))))
+                except Exception:
+                    qty = 1
+                product_costs += float(p.get("cost_price", 0)) * qty
+
+        # salaries
+        salary_total = float(base.get("salary_total") or 0)
+        workers = base.get("workers") or []
+        if isinstance(workers, list) and not salary_total:
+            for w in workers:
+                try:
+                    salary_total += float(w.get("salary", 0) or 0)
+                except Exception:
+                    continue
+
+        other_costs = float(base.get("other_costs") or base.get("costs") or 0)
+
+        headcount = int(base.get("headcount") or (len(workers) if isinstance(workers, list) else 0))
+        unit_price = float(base.get("unit_price") or 0)
+        units_sold = int(base.get("units_sold") or 0)
+
+        base_total_cost = product_costs + salary_total + other_costs
+        base_profit = sales - base_total_cost
+
+        # Start with copies
+        new_sales = sales
+        new_salary_total = salary_total
+        new_other_costs = other_costs
+        new_product_costs = product_costs
+
+        action = str(whatif.get("action") or "").lower()
+
+        if action in {"hire", "hiring"}:
+            count = int(whatif.get("count") or 0)
+            salary_per_hire = float(whatif.get("salary_per_hire") or whatif.get("salary") or (salary_total / max(1, headcount) if headcount else 1000))
+            new_salary_total = salary_total + count * salary_per_hire
+            headcount += count
+
+        elif action in {"ad_spend", "marketing", "ads"}:
+            delta = float(whatif.get("delta") or whatif.get("amount") or 0)
+            new_other_costs = other_costs + delta
+            # optional ROI-based sales uplift
+            roi = float(whatif.get("roi") or 0)
+            if roi:
+                new_sales = sales + delta * roi
+
+        elif action in {"price_change", "price_increase", "price"}:
+            delta_pct = float(whatif.get("delta_pct") or whatif.get("pct") or 0)
+            if unit_price and units_sold:
+                new_sales = (unit_price * (1 + delta_pct / 100)) * units_sold
+            elif sales:
+                new_sales = sales * (1 + delta_pct / 100)
+
+        elif action in {"volume_change", "volume", "units"}:
+            delta_units = int(whatif.get("delta_units") or whatif.get("units") or 0)
+            if unit_price:
+                new_sales = sales + delta_units * unit_price
+            elif units_sold and sales:
+                avg_price = sales / max(1, units_sold)
+                new_sales = sales + delta_units * avg_price
+
+        elif action in {"sales_delta", "sales_change"}:
+            delta = float(whatif.get("delta") or 0)
+            new_sales = sales + delta
+
+        elif action in {"costs_delta", "costs_change"}:
+            delta = float(whatif.get("delta") or 0)
+            new_other_costs = other_costs + delta
+
+        # Final totals
+        new_total_cost = new_product_costs + new_salary_total + new_other_costs
+        new_profit = new_sales - new_total_cost
+
+        delta_profit = new_profit - base_profit
+        pct_change = (delta_profit / (abs(base_profit) if base_profit else 1)) * 100
+
+        # classification
+        classification = "neutral"
+        risk = "watch"
+        if new_profit > base_profit * 1.05:
+            classification = "positive"
+            risk = "safe"
+        elif new_profit < base_profit * 0.95:
+            classification = "negative"
+            risk = "risky"
+        if base_profit >= 0 and new_profit < 0:
+            classification = "negative"
+            risk = "risky"
+
+        explanation = f"Applied action '{action}': sales {sales} -> {round(new_sales,2)}, costs {round(base_total_cost,2)} -> {round(new_total_cost,2)}, profit {round(base_profit,2)} -> {round(new_profit,2)}."
+
+        recommendation = None
+        if classification == "negative":
+            recommendation = "Avoid this change or offset with sales growth, reduce costs, or hire fewer people. Compute break-even hires or required sales uplift."
+        elif classification == "positive":
+            recommendation = "Change looks positive; consider piloting and monitoring KPIs."
+        else:
+            recommendation = "Change has small effect; monitor and run sensitivity analysis."
+
+        return {
+            "base": {
+                "sales": round(sales, 2),
+                "product_costs": round(product_costs, 2),
+                "salary_total": round(salary_total, 2),
+                "other_costs": round(other_costs, 2),
+                "total_cost": round(base_total_cost, 2),
+                "profit": round(base_profit, 2),
+            },
+            "whatif": dict(whatif),
+            "new_values": {
+                "sales": round(new_sales, 2),
+                "product_costs": round(new_product_costs, 2),
+                "salary_total": round(new_salary_total, 2),
+                "other_costs": round(new_other_costs, 2),
+                "total_cost": round(new_total_cost, 2),
+                "profit": round(new_profit, 2),
+            },
+            "deltas": {
+                "profit": round(delta_profit, 2),
+                "profit_pct": round(pct_change, 2),
+            },
+            "classification": classification,
+            "risk": risk,
+            "explanation": explanation,
+            "recommendation": recommendation,
+        }
 
 
 finance_agent = FinanceAgent()

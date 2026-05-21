@@ -108,3 +108,6 @@ export const analyzeCV = (cv: CVProfile) =>
 
 export const analyzeFinance = (whatif_scenario?: string) =>
   http.post<FinanceResult>('/finance/analyze', { whatif_scenario: whatif_scenario || null, stream: false }).then((r) => r.data);
+
+export const postWhatIf = (payload: any) =>
+  http.post<any>('/finance/whatif', payload).then((r) => r.data);

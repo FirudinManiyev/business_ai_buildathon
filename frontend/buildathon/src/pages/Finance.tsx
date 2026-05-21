@@ -1,22 +1,49 @@
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, Bot, Calculator, Loader2, AlertCircle, ArrowUp } from 'lucide-react';
-import { analyzeFinance, type FinanceResult } from '../services/api';
+import { analyzeFinance, postWhatIf, type FinanceResult } from '../services/api';
 
 export default function Finance() {
-  const [whatif, setWhatif] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<FinanceResult | null>(null);
+  const [whatIfResult, setWhatIfResult] = useState<any | null>(null);
+  const [wfAction, setWfAction] = useState('');
+  const [wfCount, setWfCount] = useState('');
+  const [wfSalaryPerHire, setWfSalaryPerHire] = useState('');
+  const [wfDelta, setWfDelta] = useState('');
+  const [wfRoi, setWfRoi] = useState('');
+  const [wfDeltaPct, setWfDeltaPct] = useState('');
+  const [wfDeltaUnits, setWfDeltaUnits] = useState('');
 
-  const submit = async () => {
+  const submitWhatIf = async () => {
     setLoading(true);
     setError('');
-    setResult(null);
+    setWhatIfResult(null);
     try {
-      const data = await analyzeFinance(whatif || undefined);
-      setResult(data);
-    } catch {
-      setError('Backend ilə əlaqə qurulamadı. Backend-in işlədiyini yoxlayın.');
+      if (!wfAction) {
+        setError('Zəhmət olmasa structured What‑If scenario seçin.');
+        return;
+      }
+      const base: any = { sales: 10000, other_costs: 5000 };
+      // build whatif spec based on selected action
+      const whatif: any = { action: wfAction };
+      if (wfAction === 'hire') {
+        whatif.count = Number(wfCount || 0);
+        whatif.salary_per_hire = Number(wfSalaryPerHire || 0);
+      } else if (wfAction === 'ad_spend') {
+        whatif.delta = Number(wfDelta || 0);
+        whatif.roi = Number(wfRoi || 0) || 0;
+      } else if (wfAction === 'price_change') {
+        whatif.delta_pct = Number(wfDeltaPct || 0);
+      } else if (wfAction === 'volume_change') {
+        whatif.delta_units = Number(wfDeltaUnits || 0);
+      }
+
+      const payload = { base, whatif };
+      const data = await postWhatIf(payload);
+      setWhatIfResult(data);
+    } catch (e) {
+      setError('What‑If sorğusu uğursuz oldu. Backend işləyirmi?');
     } finally {
       setLoading(false);
     }
@@ -33,22 +60,49 @@ export default function Finance() {
         <p className="text-gray-400">Şirkətin məhsul gəlirliliyini AI ilə analiz et, tövsiyələr al.</p>
       </div>
 
-      {/* Trigger form */}
-      <div className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 mb-6 flex flex-col gap-4">
-        <div>
-          <label className="text-gray-400 text-sm mb-1 block">What-if ssenari (isteğe bağlı)</label>
-          <input
-            value={whatif}
-            onChange={(e) => setWhatif(e.target.value)}
-            placeholder="Məs: Əgər qiymətlər 20% artsa nə olar?"
-            className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
-          />
+      {/* Structured What-If form */}
+      <div className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 mb-6">
+        <h3 className="text-white font-semibold mb-3">Structured What‑If</h3>
+        <div className="flex gap-3 flex-wrap items-end">
+          <select value={wfAction} onChange={e => setWfAction(e.target.value)} className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white">
+            <option value="" disabled>Scenario seçin...</option>
+            <option value="hire">Hire</option>
+            <option value="ad_spend">Ad Spend</option>
+            <option value="price_change">Price Change %</option>
+            <option value="volume_change">Volume Change (units)</option>
+          </select>
+          {wfAction === 'hire' && (
+            <>
+              <input type="number" min="0" value={wfCount} onChange={e => setWfCount(e.target.value)} placeholder="count" className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white" />
+              <input type="number" min="0" value={wfSalaryPerHire} onChange={e => setWfSalaryPerHire(e.target.value)} placeholder="salary per hire" className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white" />
+            </>
+          )}
+          {wfAction === 'ad_spend' && (
+            <>
+              <input type="number" min="0" value={wfDelta} onChange={e => setWfDelta(e.target.value)} placeholder="amount" className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white" />
+              <input type="number" min="0" step="0.01" value={wfRoi} onChange={e => setWfRoi(e.target.value)} placeholder="roi (e.g. 0.5)" className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white" />
+            </>
+          )}
+          {wfAction === 'price_change' && (
+            <input type="number" min="0" step="0.01" value={wfDeltaPct} onChange={e => setWfDeltaPct(e.target.value)} placeholder="delta %" className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white" />
+          )}
+          {wfAction === 'volume_change' && (
+            <input type="number" min="0" value={wfDeltaUnits} onChange={e => setWfDeltaUnits(e.target.value)} placeholder="delta units" className="bg-black/40 border border-orange-500/20 rounded-xl px-3 py-2 text-white" />
+          )}
+
+          <button onClick={submitWhatIf} disabled={loading} className="ml-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl">
+            Run What‑If
+          </button>
         </div>
-        <button onClick={submit} disabled={loading}
-          className="self-start flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors">
-          {loading ? <Loader2 size={18} className="animate-spin" /> : <Calculator size={18} />}
-          {loading ? 'AI analiz edir...' : 'Maliyyəni Analiz Et'}
-        </button>
+
+        {whatIfResult && (
+          <div className="mt-4 text-sm text-gray-200 bg-black/40 border border-orange-500/10 rounded-xl p-3">
+            <div><strong>Explanation:</strong> {whatIfResult.explanation}</div>
+            <div className="mt-2"><strong>Profit delta:</strong> {whatIfResult.deltas?.profit} ({whatIfResult.deltas?.profit_pct}%)</div>
+            <div className="mt-2"><strong>Classification:</strong> {whatIfResult.classification} — {whatIfResult.risk}</div>
+            <div className="mt-2"><strong>Recommendation:</strong> {whatIfResult.recommendation}</div>
+          </div>
+        )}
       </div>
 
       {error && (

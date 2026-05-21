@@ -143,6 +143,7 @@ WORKERS = {
         "role": "Sales Specialist",
         "skills": ["lead qualification", "CRM", "proposal writing"],
         "performance_score": 91,
+        "salary": 1800,
     },
     "worker_eli": {
         "id": 2,
@@ -150,6 +151,7 @@ WORKERS = {
         "role": "Operations Associate",
         "skills": ["inventory", "order tracking", "support"],
         "performance_score": 87,
+        "salary": 1500,
     },
     "worker_nigar": {
         "id": 3,
@@ -157,6 +159,7 @@ WORKERS = {
         "role": "HR Generalist",
         "skills": ["recruitment", "interviews", "onboarding"],
         "performance_score": 89,
+        "salary": 1700,
     },
 }
 

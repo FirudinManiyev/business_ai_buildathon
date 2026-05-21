@@ -14,6 +14,14 @@ except ImportError:
 
 app = FastAPI()
 
+# Initialize DB and seed mock data on startup
+try:
+	from .db import init_db
+except Exception:
+	from db import init_db
+
+init_db()
+
 # Allow frontend dev server and local tools to access the API
 app.add_middleware(
 	CORSMiddleware,

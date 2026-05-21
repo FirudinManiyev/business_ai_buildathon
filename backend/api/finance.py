@@ -24,6 +24,33 @@ class FinanceAnalyzeRequest(BaseModel):
     stream: bool = False
 
 
+class WhatIfBase(BaseModel):
+    sales: float | None = None
+    other_costs: float | None = None
+    salary_total: float | None = None
+    headcount: int | None = None
+    unit_price: float | None = None
+    units_sold: int | None = None
+    products: list[dict] | None = None
+    workers: list[dict] | None = None
+
+
+class WhatIfSpec(BaseModel):
+    action: str
+    # optional params depending on action
+    count: int | None = None
+    salary_per_hire: float | None = None
+    delta: float | None = None
+    roi: float | None = None
+    delta_pct: float | None = None
+    delta_units: int | None = None
+
+
+class WhatIfRequest(BaseModel):
+    base: WhatIfBase | None = None
+    whatif: WhatIfSpec
+
+
 @router.get("/employees")
 def list_employees() -> list[dict[str, Any]]:
     return list(WORKERS.values())
@@ -74,3 +101,17 @@ def analyze_finance(request: FinanceAnalyzeRequest):
         return StreamingResponse(_finance_sse_stream(profile), media_type="text/event-stream")
 
     return finance_agent.analyze(profile)
+
+
+@router.post("/whatif")
+def whatif_finance(request: WhatIfRequest):
+    base = request.base.model_dump() if request.base else {}
+    whatif = request.whatif.model_dump()
+    # Merge mock products/workers into base if not provided
+    if "products" not in base or not base.get("products"):
+        base["products"] = list(PRODUCTS.values())
+    if "workers" not in base or not base.get("workers"):
+        base["workers"] = list(WORKERS.values())
+
+    result = finance_agent.apply_whatif(base, whatif)
+    return result

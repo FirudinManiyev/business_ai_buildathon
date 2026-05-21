@@ -29,6 +29,7 @@ export default function AdminJobs() {
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'add' | 'list'>('add');
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
 
   useEffect(() => {
     getJobs()
@@ -52,6 +53,37 @@ export default function AdminJobs() {
       location: form.location,
       isAdmin: true,
     };
+    // If editing an existing job, update the corresponding list
+    if (editingJobId) {
+      // If it's an admin job id (starts with aj- or exists in adminJobs), update adminJobs
+      const isAdminEdit = adminJobs.some(j => j.id === editingJobId);
+      if (isAdminEdit) {
+        const updated = adminJobs.map(j => j.id === editingJobId ? { ...j, title: job.title, company_name: job.company_name, required_skills: job.required_skills, experience_years: job.experience_years, salary_min: job.salary_min, salary_max: job.salary_max, location: job.location } : j);
+        setAdminJobs(updated);
+        localStorage.setItem(ADMIN_JOBS_KEY, JSON.stringify(updated));
+        setForm(empty);
+        setEditingJobId(null);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+        setActiveTab('list');
+        return;
+      }
+
+      // Otherwise attempt to update a backend/mock job locally
+      const backendId = Number(editingJobId);
+      if (!Number.isNaN(backendId)) {
+        const updatedBackend = backendJobs.map(b => b.id === backendId ? { ...b, title: form.title, company_name: form.company_name, required_skills: form.skills.split(',').map(s => s.trim()).filter(Boolean), experience_years: form.experience_years, salary_min: Number(form.salary_min) || 0, salary_max: Number(form.salary_max) || 0, location: form.location } : b);
+        setBackendJobs(updatedBackend);
+        setForm(empty);
+        setEditingJobId(null);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+        setActiveTab('list');
+        return;
+      }
+    }
+
+    // Default: create new admin job
     const updated = [...adminJobs, job];
     setAdminJobs(updated);
     localStorage.setItem(ADMIN_JOBS_KEY, JSON.stringify(updated));
@@ -65,6 +97,22 @@ export default function AdminJobs() {
     const updated = adminJobs.filter(j => j.id !== id);
     setAdminJobs(updated);
     localStorage.setItem(ADMIN_JOBS_KEY, JSON.stringify(updated));
+  }
+
+  function deleteBackendJob(id: number) {
+    const updated = backendJobs.filter(b => b.id !== id);
+    setBackendJobs(updated);
+  }
+
+  function handleDeleteJob(job: any) {
+    const name = job?.title || 'elan';
+    const confirmed = window.confirm(`"${name}" elanını silmək istədiyinizə əminsiniz?`);
+    if (!confirmed) return;
+    if (job.isAdmin) {
+      deleteJob((job as AdminJob).id);
+    } else {
+      deleteBackendJob((job as any).id);
+    }
   }
 
   const allJobs = [...backendJobs.map(j => ({ ...j, isAdmin: false })), ...adminJobs];
@@ -104,7 +152,7 @@ export default function AdminJobs() {
             transition={{ duration: 0.25 }}
           >
             <form onSubmit={saveJob} className="bg-black/50 border border-orange-500/20 rounded-2xl p-7 grid sm:grid-cols-2 gap-5 max-w-2xl">
-              <h2 className="sm:col-span-2 text-white font-bold text-lg">Yeni Vakansiya</h2>
+              <h2 className="sm:col-span-2 text-white font-bold text-lg">{editingJobId ? 'Vakansiyanı Redaktə Et' : 'Yeni Vakansiya'}</h2>
 
               {[
                 { label: 'Vəzifə adı *', key: 'title', placeholder: 'Məs: Senior React Developer', full: true },
@@ -133,7 +181,7 @@ export default function AdminJobs() {
                   type="submit"
                   className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                 >
-                  <Plus size={18} /> Elan Yerləşdir
+                  <Plus size={18} /> {editingJobId ? 'Elanı Yenilə' : 'Elan Yerləşdir'}
                 </motion.button>
                 <AnimatePresence>
                   {saved && (
@@ -179,14 +227,62 @@ export default function AdminJobs() {
                         <>
                           <span className="text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded-full">Sizin</span>
                           <button
-                            onClick={() => deleteJob((job as AdminJob).id)}
-                            className="text-gray-600 hover:text-red-400 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteJob(job); }}
+                            className="text-gray-600 hover:text-red-400 transition-colors ml-2"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // populate form for editing
+                              setForm({
+                                title: job.title,
+                                company_name: job.company_name,
+                                skills: (job.required_skills || []).join(', '),
+                                experience_years: job.experience_years || '',
+                                salary_min: String(job.salary_min || ''),
+                                salary_max: String(job.salary_max || ''),
+                                location: job.location || '',
+                              });
+                              setEditingJobId((job as AdminJob).id);
+                              setActiveTab('add');
+                            }}
+                            className="text-gray-600 hover:text-green-400 transition-colors ml-2 text-sm px-2 py-1"
+                          >
+                            Redaktə
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2 py-0.5 rounded-full">Backend</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // populate form for editing backend/mock job
+                              setForm({
+                                title: job.title,
+                                company_name: job.company_name,
+                                skills: (job.required_skills || []).join(', '),
+                                experience_years: job.experience_years || '',
+                                salary_min: String(job.salary_min || ''),
+                                salary_max: String(job.salary_max || ''),
+                                location: job.location || '',
+                              });
+                              setEditingJobId(String((job as any).id));
+                              setActiveTab('add');
+                            }}
+                            className="text-gray-600 hover:text-green-400 transition-colors ml-2 text-sm px-2 py-1"
+                          >
+                            Redaktə
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteJob(job); }}
+                            className="text-gray-600 hover:text-red-400 transition-colors ml-2"
                           >
                             <Trash2 size={15} />
                           </button>
                         </>
-                      ) : (
-                        <span className="text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2 py-0.5 rounded-full">Backend</span>
                       )}
                     </div>
 
