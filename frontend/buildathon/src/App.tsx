@@ -1,15 +1,30 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import LightPillar from './components/LightPillar';
 import MainLayout from './layouts/MainLayout';
+import PageTransition from './components/PageTransition';
 import Home from './pages/Home';
 import Recommendations from './pages/Recommendations';
 import Jobs from './pages/Jobs';
 import Finance from './pages/Finance';
 
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+        <Route path="/recommendations" element={<PageTransition><Recommendations /></PageTransition>} />
+        <Route path="/jobs" element={<PageTransition><Jobs /></PageTransition>} />
+        <Route path="/finance" element={<PageTransition><Finance /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      {/* Fixed background — bütün səhifələrdə eyni qalır, scroll etmir */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, backgroundColor: '#0a0505' }}>
         <LightPillar
           topColor="#EAB308"
@@ -27,15 +42,9 @@ function App() {
         />
       </div>
 
-      {/* Scrollable content — z-index 1 ilə background üzərindədir */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <MainLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/recommendations" element={<Recommendations />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/finance" element={<Finance />} />
-          </Routes>
+          <AnimatedRoutes />
         </MainLayout>
       </div>
     </BrowserRouter>
