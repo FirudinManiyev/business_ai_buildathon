@@ -7,8 +7,12 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from agents.finance_agent import finance_agent
-from utils.mock_data import PRODUCTS, WORKERS
+try:
+    from ..agents.finance_agent import finance_agent
+    from ..utils.mock_data import PRODUCTS, WORKERS
+except ImportError:
+    from agents.finance_agent import finance_agent
+    from utils.mock_data import PRODUCTS, WORKERS
 
 
 router = APIRouter()

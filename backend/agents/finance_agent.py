@@ -4,8 +4,12 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from agents.base_agent import BaseAgent
-from utils.mock_data import JOB_LISTINGS, PRODUCTS
+try:
+    from .base_agent import BaseAgent
+    from ..utils.mock_data import JOB_LISTINGS, PRODUCTS
+except ImportError:
+    from agents.base_agent import BaseAgent
+    from utils.mock_data import JOB_LISTINGS, PRODUCTS
 
 
 def _build_finance_prompt() -> str:

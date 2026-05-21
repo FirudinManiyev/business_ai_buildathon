@@ -59,8 +59,23 @@ export default function Jobs() {
           <AlertCircle size={16} /> {jobsError}
         </div>
       )}
+      {/* Overall average match (computed from individual job match scores) */}
+      {result?.matches?.length > 0 && (
+        (() => {
+          const avg = Math.round(result.matches.reduce((sum, m) => sum + (m.match_score || 0), 0) / result.matches.length);
+          return (
+            <div className="flex items-center justify-end mb-4">
+              <span className={`text-sm font-bold px-3 py-1 rounded-full border ${avg >= 70 ? 'bg-green-500/10 border-green-500/30 text-green-400' : avg >= 40 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                Orta uyğunluq: {avg}/100
+              </span>
+            </div>
+          );
+        })()
+      )}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        {jobs.map((job) => (
+        {jobs.map((job) => {
+          const resultMatch = result?.matches?.find(m => m.job_id === job.id || m.job_title === job.title);
+          return (
           <div key={job.id} className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 flex flex-col gap-3 hover:border-orange-500/40 transition-colors">
             <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
               <Briefcase size={20} className="text-orange-400" />
@@ -69,6 +84,13 @@ export default function Jobs() {
               <h3 className="text-white font-bold">{job.title}</h3>
               <p className="text-orange-400 text-sm">{job.company_name}</p>
             </div>
+            {resultMatch && (
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-bold px-3 py-1 rounded-full border ${resultMatch.match_score >= 70 ? 'bg-green-500/10 border-green-500/30 text-green-400' : resultMatch.match_score >= 40 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                  {resultMatch.match_score}/100
+                </span>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 text-xs text-gray-400">
               <span className="flex items-center gap-1"><MapPin size={11} />{job.location}</span>
               <span className="flex items-center gap-1"><Banknote size={11} />{job.salary_min}–{job.salary_max} USD</span>
@@ -78,9 +100,19 @@ export default function Jobs() {
                 <span key={s} className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-300 text-xs">{s}</span>
               ))}
             </div>
+            {resultMatch?.matched_skills?.length > 0 && (
+              <div className="mt-2">
+                <div className="text-green-400 text-xs font-semibold mb-1">Uyğun bacarıqlar</div>
+                <div className="flex flex-wrap gap-1">
+                  {resultMatch.matched_skills.map((s:string) => (
+                    <span key={s} className="px-2 py-0.5 rounded bg-green-500/10 text-green-300 text-xs">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
             <span className="text-gray-500 text-xs">{job.experience_years} il təcrübə</span>
           </div>
-        ))}
+        )})}
       </div>
 
       {/* CV Analysis form */}
@@ -121,63 +153,7 @@ export default function Jobs() {
         </div>
       )}
 
-      {/* Results */}
-      {result && (
-        <div className="flex flex-col gap-6">
-          {/* Job matches */}
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4">Vəzifə Uyğunluğu</h2>
-            <div className="flex flex-col gap-3">
-              {result.matches?.map((m, i) => (
-                <div key={i} className="bg-black/50 border border-orange-500/20 rounded-2xl p-5">
-                  <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <h3 className="text-white font-bold">{m.job_title}</h3>
-                    <span className={`text-sm font-bold px-3 py-1 rounded-full border ${m.match_score >= 70 ? 'bg-green-500/10 border-green-500/30 text-green-400' : m.match_score >= 40 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
-                      {m.match_score}/100
-                    </span>
-                  </div>
-                  <p className="text-gray-400 text-sm mb-3">{m.reason}</p>
-                  <div className="flex flex-wrap gap-4 text-xs">
-                    {m.matched_skills?.length > 0 && (
-                      <div>
-                        <span className="text-green-400 font-semibold mb-1 flex items-center gap-1"><CheckCircle size={12} /> Uyğun bacarıqlar</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {m.matched_skills.map((s) => <span key={s} className="px-2 py-0.5 rounded bg-green-500/10 text-green-300">{s}</span>)}
-                        </div>
-                      </div>
-                    )}
-                    {m.missing_skills?.length > 0 && (
-                      <div>
-                        <span className="text-red-400 font-semibold mb-1 flex items-center gap-1"><AlertCircle size={12} /> Çatışmayan bacarıqlar</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {m.missing_skills.map((s) => <span key={s} className="px-2 py-0.5 rounded bg-red-500/10 text-red-300">{s}</span>)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Skill gap products */}
-          {result.skill_gap_products?.length > 0 && (
-            <div>
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <BookOpen size={20} className="text-orange-400" /> Tövsiyə olunan kurslar
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {result.skill_gap_products.map((p, i) => (
-                  <div key={i} className="bg-black/40 border border-orange-500/15 rounded-xl px-4 py-3 max-w-xs">
-                    <span className="text-white text-sm font-semibold block mb-1">{p.product_name}</span>
-                    <span className="text-gray-400 text-xs">{p.reason}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Results are shown inline on job cards (match score + matched skills) */}
     </div>
   );
 }

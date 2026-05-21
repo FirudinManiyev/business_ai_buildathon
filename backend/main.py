@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.finance import router as finance_router
-from api.hr import router as hr_router
-from api.orchestrator import router as orchestrator_router
-from api.sales import router as sales_router
+try:
+	from .api.finance import router as finance_router
+	from .api.hr import router as hr_router
+	from .api.orchestrator import router as orchestrator_router
+	from .api.sales import router as sales_router
+except ImportError:
+	from api.finance import router as finance_router
+	from api.hr import router as hr_router
+	from api.orchestrator import router as orchestrator_router
+	from api.sales import router as sales_router
 
 app = FastAPI()
 

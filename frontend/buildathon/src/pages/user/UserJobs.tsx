@@ -223,49 +223,7 @@ export default function UserJobs() {
         )}
       </AnimatePresence>
 
-      {/* HR Results summary */}
-      <AnimatePresence>
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="bg-black/50 border border-orange-500/25 rounded-2xl p-6 mb-8 space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                <Sparkles size={18} className="text-orange-400" /> AI Analiz Nəticəsi
-              </h2>
-              <button onClick={() => setResult(null)} className="text-gray-500 hover:text-gray-300 transition-colors">
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Finance signal */}
-            {result.finance_signal && (
-              <div className="bg-orange-500/8 border border-orange-500/20 rounded-xl px-4 py-3 text-sm">
-                <span className="text-orange-400 font-semibold">Maliyyə Siqnalı: </span>
-                <span className="text-gray-300">{result.finance_signal.reason}</span>
-                <span className="text-gray-500"> — {result.finance_signal.salary_pressure}</span>
-              </div>
-            )}
-
-            {/* Skill gap products */}
-            {result.skill_gap_products?.length > 0 && (
-              <div>
-                <p className="text-gray-500 text-xs uppercase tracking-widest mb-2">Bacarıq boşluğu üçün tövsiyə</p>
-                <div className="flex flex-wrap gap-2">
-                  {result.skill_gap_products.map(s => (
-                    <span key={s.product_id} className="bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs px-3 py-1 rounded-full">
-                      {s.product_name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* AI analysis summary removed — results shown inline on job cards only */}
 
       {loading && (
         <div className="flex items-center justify-center py-24">
