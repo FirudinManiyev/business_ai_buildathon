@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..agents.hr_agent import hr_agent
-from ..utils.mock_data import CVS, JOB_LISTINGS
+from agents.hr_agent import hr_agent
+from utils.mock_data import CVS, JOB_LISTINGS
 
 
 router = APIRouter()

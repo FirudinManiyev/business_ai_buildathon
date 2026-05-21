@@ -17,7 +17,7 @@ try:
 except Exception:
     Groq = None
 
-from ..utils.mock_data import CUSTOMERS, JOB_LISTINGS, PRODUCTS, SKILL_GAP_PRODUCTS, WORKERS
+from utils.mock_data import CUSTOMERS, JOB_LISTINGS, PRODUCTS, SKILL_GAP_PRODUCTS, WORKERS
 
 
 class BaseAgent(ABC):

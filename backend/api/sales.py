@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..agents.sales_agent import sales_agent
-from ..utils.mock_data import SALES_CUSTOMERS, SALES_PRODUCTS
+from agents.sales_agent import sales_agent
+from utils.mock_data import SALES_CUSTOMERS, SALES_PRODUCTS
 
 
 router = APIRouter()

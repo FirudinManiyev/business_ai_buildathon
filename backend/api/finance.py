@@ -7,8 +7,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..agents.finance_agent import finance_agent
-from ..utils.mock_data import PRODUCTS, WORKERS
+from agents.finance_agent import finance_agent
+from utils.mock_data import PRODUCTS, WORKERS
 
 
 router = APIRouter()
@@ -30,7 +30,7 @@ def test_finance() -> dict[str, Any]:
     profile = {
         "products": list(PRODUCTS.values()),
         "workers": list(WORKERS.values()),
-        "target_salary": 2500,
+        "target_salary": 1000,
         "currency": "USD",
     }
     return finance_agent.analyze(profile)
@@ -44,7 +44,7 @@ def _finance_sse_stream(profile: dict[str, Any]):
         f"Context profile: {profile}"
     )
 
-    for chunk in finance_agent.stream(prompt, context=profile):
+    for chunk in finance_agent.stream_report(profile):
         yield f"data: {json.dumps({'token': chunk})}\n\n"
 
     yield "data: [DONE]\n\n"
@@ -56,6 +56,8 @@ def analyze_finance(request: FinanceAnalyzeRequest):
     profile: dict[str, Any] = {
         "products": list(PRODUCTS.values()),
         "workers": list(WORKERS.values()),
+        "target_salary": 1000,
+        "currency": "USD",
     }
 
     if request.whatif_scenario:

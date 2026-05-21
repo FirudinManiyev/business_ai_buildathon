@@ -12,10 +12,10 @@ try:
 except Exception:
     Groq = None
 
-from ..agents.finance_agent import finance_agent
-from ..agents.hr_agent import hr_agent
-from ..agents.sales_agent import sales_agent
-from ..utils.mock_data import CUSTOMERS, JOB_LISTINGS, PRODUCTS, SALES_CUSTOMERS, WORKERS
+from agents.finance_agent import finance_agent
+from agents.hr_agent import hr_agent
+from agents.sales_agent import sales_agent
+from utils.mock_data import CUSTOMERS, JOB_LISTINGS, PRODUCTS, SALES_CUSTOMERS, WORKERS
 
 
 router = APIRouter()
