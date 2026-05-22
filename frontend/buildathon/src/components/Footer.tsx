@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Mail, Sparkles, Briefcase, TrendingUp, House } from 'lucide-react'; // House = ana səhifə ikonu
-import { FaGithub, FaXTwitter } from 'react-icons/fa6';
+import { Mail, Sparkles, Briefcase, TrendingUp, House } from 'lucide-react';
+import { FaGithub, FaLinkedin } from 'react-icons/fa6';
 
 const navLinks = [
   { to: '/', label: 'Ana Səhifə', icon: <House size={13} /> },
@@ -11,9 +11,9 @@ const navLinks = [
 ];
 
 const socials = [
-  { icon: <FaGithub size={15} />, href: '#', label: 'GitHub' },
-  { icon: <FaXTwitter size={15} />, href: '#', label: 'Twitter' },
-  { icon: <Mail size={15} />, href: 'mailto:info@biznesbayt.az', label: 'Email' },
+  { icon: <FaGithub size={15} />, href: 'https://github.com/FirudinManiyev/business_ai_buildathon', label: 'GitHub' },
+  { icon: <FaLinkedin size={15} />, href: 'https://www.linkedin.com/in/firudin-maniyev-4843242b7', label: 'LinkedIn' },
+  { icon: <Mail size={15} />, href: 'mailto:firudinmaniyev@gmail.com', label: 'Email' },
 ];
 
 export default function Footer() {
@@ -28,17 +28,19 @@ export default function Footer() {
               whileHover={{ scale: 1.04 }}
               className="inline-flex items-center gap-2 text-orange-400 font-extrabold text-xl w-fit"
             >
-              <ShoppingBag size={22} />
-              BiznesBayt
+              <TrendingUp size={22} />
+              SuperTraders
             </motion.div>
             <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
-              Süni intellekt ilə gücləndirilmiş biznes platformu. Tövsiyələr, iş analizi və maliyyə hesabatı — hamısı bir yerdə.
+              AI-destekli ticarət platforması. Məhsul tövsiyəsi, CV analizi və maliyyə hesabatı — hamısı bir yerdə.
             </p>
             <div className="flex gap-2 mt-1">
               {socials.map(({ icon, href, label }) => (
                 <motion.a
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.15, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   aria-label={label}
@@ -90,7 +92,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-orange-500/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-xs">
-            © 2025 BiznesBayt. Bütün hüquqlar qorunur.
+            © 2026 SuperTraders. Bütün hüquqlar qorunur.
           </p>
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
