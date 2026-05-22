@@ -14,6 +14,8 @@ import Finance from './pages/Finance';
 import Products from './pages/user/Products';
 import UserJobs from './pages/user/UserJobs';
 import AdminJobs from './pages/admin/AdminJobs';
+import About from './pages/About';
+import ScrollToTop from './components/ScrollToTop';
 
 function PT({ children }: { children: React.ReactNode }) {
   return <PageTransition>{children}</PageTransition>;
@@ -31,6 +33,7 @@ function AnimatedRoutes() {
         <Route path="/dashboard" element={<PT><Dashboard /></PT>} />
         <Route path="/unauthorized" element={<PT><Unauthorized /></PT>} />
         <Route path="/recommendations" element={<PT><Recommendations /></PT>} />
+        <Route path="/about" element={<PT><About /></PT>} />
 
         {/* User only */}
         <Route path="/products" element={<PT><ProtectedRoute role="user"><Products /></ProtectedRoute></PT>} />
@@ -47,6 +50,7 @@ function AnimatedRoutes() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, backgroundColor: '#0a0505' }}>
         <LightPillar
           topColor="#EAB308"

@@ -28,14 +28,28 @@ interface AdminJob {
 
 // ── Mock jobs ─────────────────────────────────────────────────────────────────
 const MOCK_JOBS: Job[] = [
-  { id: 1, title: 'Frontend Developer', company_name: 'TechAz MMC', required_skills: ['React', 'TypeScript', 'CSS', 'HTML'], experience_years: '1-2 il', salary_min: 800, salary_max: 1500, location: 'Bakı' },
-  { id: 2, title: 'Backend Developer', company_name: 'DataSoft LLC', required_skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker'], experience_years: '2-3 il', salary_min: 1000, salary_max: 2000, location: 'Bakı / Remote' },
-  { id: 3, title: 'Full Stack Developer', company_name: 'StartupHub AZ', required_skills: ['React', 'Node.js', 'MongoDB', 'TypeScript'], experience_years: '2-4 il', salary_min: 1200, salary_max: 2500, location: 'Remote' },
-  { id: 4, title: 'Data Scientist', company_name: 'Analytics Pro', required_skills: ['Python', 'Machine Learning', 'SQL', 'Pandas'], experience_years: '1-3 il', salary_min: 1500, salary_max: 3000, location: 'Bakı' },
-  { id: 5, title: 'DevOps Engineer', company_name: 'CloudBase AZ', required_skills: ['Docker', 'Kubernetes', 'CI/CD', 'Linux'], experience_years: '2-4 il', salary_min: 1200, salary_max: 2800, location: 'Bakı / Hybrid' },
-  { id: 6, title: 'UI/UX Designer', company_name: 'Creative Studio', required_skills: ['Figma', 'Adobe XD', 'CSS', 'Prototyping'], experience_years: '1-2 il', salary_min: 700, salary_max: 1400, location: 'Bakı' },
-  { id: 7, title: 'Mobile Developer (React Native)', company_name: 'AppFactory', required_skills: ['React Native', 'TypeScript', 'Redux', 'iOS/Android'], experience_years: '2-3 il', salary_min: 1000, salary_max: 2200, location: 'Remote' },
-  { id: 8, title: 'QA Engineer', company_name: 'Quality First MMC', required_skills: ['Selenium', 'Jest', 'Postman', 'SQL'], experience_years: '1-2 il', salary_min: 600, salary_max: 1200, location: 'Bakı' },
+  { id: 1,  title: 'Frontend Developer',             company_name: 'TechAz MMC',         required_skills: ['React', 'TypeScript', 'CSS', 'HTML'],                        experience_years: '1-2 il',  salary_min: 800,  salary_max: 1500, location: 'Bakı' },
+  { id: 2,  title: 'Backend Developer',              company_name: 'DataSoft LLC',        required_skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker'],                 experience_years: '2-3 il',  salary_min: 1000, salary_max: 2000, location: 'Bakı / Remote' },
+  { id: 3,  title: 'Full Stack Developer',           company_name: 'StartupHub AZ',       required_skills: ['React', 'Node.js', 'MongoDB', 'TypeScript'],                 experience_years: '2-4 il',  salary_min: 1200, salary_max: 2500, location: 'Remote' },
+  { id: 4,  title: 'Data Scientist',                 company_name: 'Analytics Pro',       required_skills: ['Python', 'Machine Learning', 'SQL', 'Pandas'],               experience_years: '1-3 il',  salary_min: 1500, salary_max: 3000, location: 'Bakı' },
+  { id: 5,  title: 'DevOps Engineer',                company_name: 'CloudBase AZ',        required_skills: ['Docker', 'Kubernetes', 'CI/CD', 'Linux'],                    experience_years: '2-4 il',  salary_min: 1200, salary_max: 2800, location: 'Bakı / Hybrid' },
+  { id: 6,  title: 'UI/UX Designer',                 company_name: 'Creative Studio',     required_skills: ['Figma', 'Adobe XD', 'CSS', 'Prototyping'],                   experience_years: '1-2 il',  salary_min: 700,  salary_max: 1400, location: 'Bakı' },
+  { id: 7,  title: 'Mobile Developer (React Native)', company_name: 'AppFactory',         required_skills: ['React Native', 'TypeScript', 'Redux', 'iOS/Android'],        experience_years: '2-3 il',  salary_min: 1000, salary_max: 2200, location: 'Remote' },
+  { id: 8,  title: 'QA Engineer',                    company_name: 'Quality First MMC',   required_skills: ['Selenium', 'Jest', 'Postman', 'SQL'],                        experience_years: '1-2 il',  salary_min: 600,  salary_max: 1200, location: 'Bakı' },
+  { id: 9,  title: 'Machine Learning Engineer',      company_name: 'AI Nexus',            required_skills: ['Python', 'TensorFlow', 'PyTorch', 'ML Ops'],                 experience_years: '2-4 il',  salary_min: 1800, salary_max: 3500, location: 'Remote' },
+  { id: 10, title: 'Cloud Engineer (AWS)',            company_name: 'SkyNet Solutions',    required_skills: ['AWS', 'Terraform', 'Python', 'Linux', 'CI/CD'],              experience_years: '2-3 il',  salary_min: 1400, salary_max: 2800, location: 'Bakı / Remote' },
+  { id: 11, title: 'Cybersecurity Analyst',          company_name: 'SecureAZ',            required_skills: ['Network Security', 'Penetration Testing', 'Linux', 'SIEM'], experience_years: '1-3 il',  salary_min: 1200, salary_max: 2500, location: 'Bakı' },
+  { id: 12, title: 'Product Manager',                company_name: 'ProductLab AZ',       required_skills: ['Agile', 'Jira', 'SQL', 'User Research', 'Figma'],            experience_years: '2-4 il',  salary_min: 1300, salary_max: 2600, location: 'Bakı' },
+  { id: 13, title: 'Android Developer (Kotlin)',     company_name: 'MobileFirst',         required_skills: ['Kotlin', 'Android SDK', 'Jetpack Compose', 'REST API'],     experience_years: '1-3 il',  salary_min: 900,  salary_max: 2000, location: 'Remote' },
+  { id: 14, title: 'iOS Developer (Swift)',          company_name: 'AppFactory',          required_skills: ['Swift', 'SwiftUI', 'Xcode', 'Core Data', 'REST API'],       experience_years: '1-3 il',  salary_min: 1000, salary_max: 2200, location: 'Remote' },
+  { id: 15, title: 'Data Analyst',                   company_name: 'BizData AZ',          required_skills: ['SQL', 'Python', 'Power BI', 'Excel', 'Tableau'],            experience_years: '1-2 il',  salary_min: 800,  salary_max: 1600, location: 'Bakı' },
+  { id: 16, title: 'Site Reliability Engineer',      company_name: 'FinTech AZ',          required_skills: ['Kubernetes', 'Prometheus', 'Go', 'Linux', 'Incident Mgmt'], experience_years: '3-5 il',  salary_min: 2000, salary_max: 4000, location: 'Hybrid' },
+  { id: 17, title: 'React Native Lead',              company_name: 'SuperTraders Tech',   required_skills: ['React Native', 'TypeScript', 'GraphQL', 'Redux', 'Testing'], experience_years: '3-5 il',  salary_min: 1800, salary_max: 3200, location: 'Remote' },
+  { id: 18, title: 'Blockchain Developer',           company_name: 'CryptoAZ',            required_skills: ['Solidity', 'Web3.js', 'Ethereum', 'Smart Contracts'],       experience_years: '2-4 il',  salary_min: 2000, salary_max: 4500, location: 'Remote' },
+  { id: 19, title: 'Technical Writer',               company_name: 'DocuTech',            required_skills: ['Technical Writing', 'Markdown', 'API Docs', 'Git'],         experience_years: '1-2 il',  salary_min: 600,  salary_max: 1200, location: 'Bakı / Remote' },
+  { id: 20, title: 'Django Backend Developer',       company_name: 'WebStack AZ',         required_skills: ['Python', 'Django', 'PostgreSQL', 'Redis', 'REST API'],      experience_years: '1-3 il',  salary_min: 900,  salary_max: 1800, location: 'Bakı' },
+  { id: 21, title: 'Vue.js Frontend Developer',      company_name: 'Digizən MMC',         required_skills: ['Vue.js', 'JavaScript', 'Tailwind CSS', 'REST API'],         experience_years: '1-2 il',  salary_min: 750,  salary_max: 1500, location: 'Bakı' },
+  { id: 22, title: 'Scrum Master / Agile Coach',    company_name: 'AgileAZ',             required_skills: ['Scrum', 'Kanban', 'Jira', 'Agile', 'Facilitation'],         experience_years: '2-4 il',  salary_min: 1100, salary_max: 2200, location: 'Bakı / Hybrid' },
 ];
 
 // ── Local skill-matching AI (backend olmadan) ─────────────────────────────────
@@ -173,14 +187,14 @@ export default function UserJobs() {
       const cvPayload = payload.cv;
       await saveUserCv(user.id, {
         full_name: cvPayload.name,
-        email: cvPayload.email,
-        phone: cvPayload.phone,
-        education: cvPayload.education,
-        experience: cvPayload.experience || cvPayload.experience_years,
-        skills: cvPayload.skills || [],
-        projects: cvPayload.projects || [],
-        languages: cvPayload.languages || [],
-      });
+        email: cvPayload.email ?? '',
+        phone: cvPayload.phone ?? '',
+        education: cvPayload.education ?? '',
+        experience: cvPayload.experience_years ?? '',
+        skills: cvPayload.skills ?? [],
+        projects: cvPayload.projects ?? [],
+        languages: cvPayload.languages ?? [],
+      } as unknown as CVProfile);
     }
   }
 
