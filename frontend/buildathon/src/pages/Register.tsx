@@ -8,7 +8,7 @@ export default function Register() {
   const { register, user } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' as Role });
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -21,7 +21,8 @@ export default function Register() {
     e.preventDefault();
     setError('');
     try {
-      await register(form.name, form.email, form.password, form.role);
+      // Always register as regular user
+      await register(form.name, form.email, form.password, 'user');
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.message);
@@ -53,35 +54,7 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Role selection */}
-            <div>
-              <label className="text-gray-400 text-sm mb-3 block">Hesab növü seçin</label>
-              <div className="grid grid-cols-2 gap-3">
-                {(['user', 'admin'] as Role[]).map(r => (
-                  <motion.button
-                    key={r}
-                    type="button"
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => setForm(f => ({ ...f, role: r }))}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                      form.role === r
-                        ? 'border-orange-500 bg-orange-500/15 text-white'
-                        : 'border-orange-500/20 bg-white/3 text-gray-400 hover:border-orange-500/40'
-                    }`}
-                  >
-                    {r === 'user'
-                      ? <UserCheck size={22} className={form.role === r ? 'text-orange-400' : ''} />
-                      : <ShieldCheck size={22} className={form.role === r ? 'text-orange-400' : ''} />
-                    }
-                    <span className="text-sm font-semibold capitalize">
-                      {r === 'user' ? 'İstifadəçi' : 'Admin'}
-                    </span>
-                    <span className="text-xs text-center opacity-60">
-                      {r === 'user' ? 'Məhsul al, iş tap' : 'Elan yerlşdər, maliyyə'}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
+              {/* Registration creates regular users only */}
 
             <div>
               <label className="text-gray-400 text-sm mb-1.5 block">Ad Soyad</label>

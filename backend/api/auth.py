@@ -100,14 +100,20 @@ def seed_users() -> dict[str, Any]:
 def register(request: RegisterRequest, response: Response) -> dict[str, Any]:
     session = SessionLocal()
     try:
+        # Prevent clients from registering admin accounts
+        if request.role == 'admin':
+            raise HTTPException(status_code=403, detail="Admin hesabı ilə qeydiyyat icazə verilmir")
+
         existing = session.execute(select(User).where(User.email == request.email)).scalars().first()
         if existing:
             raise HTTPException(status_code=409, detail="Bu email artıq qeydiyyatdadır")
+        # Always create regular users via the public register endpoint.
+        # Admin accounts should be created only via seeds or direct DB operations.
         user = User(
             full_name=request.name,
             email=request.email,
             password_hash=request.password,
-            purpose=request.role,
+            purpose='user',
             purchases=[],
         )
         session.add(user)
