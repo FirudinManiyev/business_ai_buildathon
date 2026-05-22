@@ -1,5 +1,8 @@
 fastapi
-uvicorn
 groq
 dotenv
 sqlalchemy
+uvicorn[standard]
+pydantic
+python-multipart
+python-dotenv
