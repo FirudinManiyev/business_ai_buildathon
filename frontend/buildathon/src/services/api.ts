@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const http = axios.create({ baseURL: '/api', withCredentials: true });
+const http = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL}/api`,
+  withCredentials: true,
+});
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
