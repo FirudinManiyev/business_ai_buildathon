@@ -1,1 +1,56 @@
 @import "tailwindcss";
+
+/* ── Global reset & smooth scroll ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0a0505; }
+::-webkit-scrollbar-thumb { background: #c2410c55; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #ea580c99; }
+
+/* ── Selection ── */
+::selection { background: #ea580c40; color: #fff; }
+
+/* ── Custom keyframes ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+  50%       { box-shadow: 0 0 24px 4px rgba(249, 115, 22, 0.15); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Utility classes ── */
+.animate-float  { animation: float 3.5s ease-in-out infinite; }
+.animate-glow   { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249,115,22,0.3); }
+.btn-primary:active { transform: translateY(0); }
+
+/* Card lift on hover */
+.card-hover {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(249,115,22,0.2);
+}

@@ -1,15 +1,56 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import LightPillar from './components/LightPillar';
 import MainLayout from './layouts/MainLayout';
+import PageTransition from './components/PageTransition';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Unauthorized from './pages/Unauthorized';
 import Recommendations from './pages/Recommendations';
-import Jobs from './pages/Jobs';
 import Finance from './pages/Finance';
+import Products from './pages/user/Products';
+import UserJobs from './pages/user/UserJobs';
+import AdminJobs from './pages/admin/AdminJobs';
+import About from './pages/About';
+import ScrollToTop from './components/ScrollToTop';
+
+function PT({ children }: { children: React.ReactNode }) {
+  return <PageTransition>{children}</PageTransition>;
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        {/* Public */}
+        <Route path="/" element={<PT><Home /></PT>} />
+        <Route path="/login" element={<PT><Login /></PT>} />
+        <Route path="/register" element={<PT><Register /></PT>} />
+        <Route path="/dashboard" element={<PT><Dashboard /></PT>} />
+        <Route path="/unauthorized" element={<PT><Unauthorized /></PT>} />
+        <Route path="/recommendations" element={<PT><Recommendations /></PT>} />
+        <Route path="/about" element={<PT><About /></PT>} />
+
+        {/* User only */}
+        <Route path="/products" element={<PT><ProtectedRoute role="user"><Products /></ProtectedRoute></PT>} />
+        <Route path="/jobs" element={<PT><ProtectedRoute role="user"><UserJobs /></ProtectedRoute></PT>} />
+
+        {/* Admin only */}
+        <Route path="/admin/jobs" element={<PT><ProtectedRoute role="admin"><AdminJobs /></ProtectedRoute></PT>} />
+        <Route path="/finance" element={<PT><ProtectedRoute role="admin"><Finance /></ProtectedRoute></PT>} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
-      {/* Fixed background — bütün səhifələrdə eyni qalır, scroll etmir */}
+      <ScrollToTop />
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, backgroundColor: '#0a0505' }}>
         <LightPillar
           topColor="#EAB308"
@@ -27,15 +68,9 @@ function App() {
         />
       </div>
 
-      {/* Scrollable content — z-index 1 ilə background üzərindədir */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <MainLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/recommendations" element={<Recommendations />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/finance" element={<Finance />} />
-          </Routes>
+          <AnimatedRoutes />
         </MainLayout>
       </div>
     </BrowserRouter>

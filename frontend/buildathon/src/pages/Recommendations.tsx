@@ -53,122 +53,144 @@ export default function Recommendations() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-4xl font-extrabold text-white mb-2 flex items-center gap-3">
           <Sparkles className="text-orange-400" size={36} /> AI Tövsiyələri
         </h1>
-        <p className="text-gray-400">Müştəri profilini daxil edin, AI ən uyğun məhsulları tövsiyə etsin.</p>
+        <p className="text-gray-400">Müştəri profilini daxil edin, AI ən uyğun məhsulları ayrıca nəticə panelində göstərsin.</p>
       </div>
 
-      {/* Form */}
-      <div className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 mb-8 flex flex-col gap-5">
-        <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] items-start">
+        {/* Input section */}
+        <section className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 flex flex-col gap-5">
           <div>
-            <label className="text-gray-400 text-sm mb-1 block">Ad / Şirkət adı</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Məs: Sara Məmmədova"
-              className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
-            />
+            <h2 className="text-xl font-bold text-white mb-1">Profil Məlumatı</h2>
+            <p className="text-gray-400 text-sm">Formu doldur və AI tövsiyələrini sağdakı paneldə gör.</p>
           </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-gray-400 text-sm mb-1 block">Ad / Şirkət adı</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Məs: Sara Məmmədova"
+                className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 text-sm mb-1 block">Məqsəd</label>
+              <select
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50"
+              >
+                {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </select>
+            </div>
+          </div>
+
           <div>
-            <label className="text-gray-400 text-sm mb-1 block">Məqsəd</label>
-            <select
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50"
-            >
-              {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-gray-400 text-sm mb-2 block">Maraqlar (kateqoriya)</label>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button key={cat} onClick={() => toggleArr(interests, setInterests, cat)}
-                className={`px-3 py-1.5 rounded-xl border text-sm transition-colors ${interests.includes(cat) ? 'bg-orange-500 border-orange-500 text-white' : 'border-orange-500/30 text-gray-400 hover:border-orange-500/50 hover:text-orange-300'}`}>
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="text-gray-400 text-sm mb-2 block">Əvvəlki alışlar</label>
-          <div className="flex flex-wrap gap-2">
-            {products.map((p) => (
-              <button key={p.id} onClick={() => toggleArr(purchased, setPurchased, p.name)}
-                className={`px-3 py-1.5 rounded-xl border text-sm transition-colors ${purchased.includes(p.name) ? 'bg-orange-500 border-orange-500 text-white' : 'border-orange-500/30 text-gray-400 hover:border-orange-500/50 hover:text-orange-300'}`}>
-                {p.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={submit} disabled={loading || !name.trim()}
-          className="self-start flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors">
-          {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-          {loading ? 'Analiz edilir...' : 'Tövsiyə Al'}
-        </button>
-      </div>
-
-      {error && (
-        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">
-          <AlertCircle size={18} /> {error}
-        </div>
-      )}
-
-      {/* Results */}
-      {result && (
-        <div className="flex flex-col gap-6">
-          {/* Insight */}
-          <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 text-gray-300 text-sm italic">
-            💡 {result.insight}
-          </div>
-
-          {/* Recommendations */}
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4">Tövsiyə olunan məhsullar</h2>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {result.recommendations.map((r, i) => (
-                <div key={i} className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 flex flex-col gap-3 hover:border-orange-500/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                    <ShoppingCart size={20} className="text-orange-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold">{r.product_name}</h3>
-                    <span className={`text-xs px-2 py-0.5 rounded-full border mt-1 inline-block ${r.priority === 'high' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'}`}>
-                      {r.priority === 'high' ? 'Yüksək prioritet' : 'Orta prioritet'}
-                    </span>
-                  </div>
-                  <p className="text-gray-400 text-xs flex-1">{r.reason}</p>
-                </div>
+            <label className="text-gray-400 text-sm mb-2 block">Maraqlar (kateqoriya)</label>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button key={cat} onClick={() => toggleArr(interests, setInterests, cat)}
+                  className={`px-3 py-1.5 rounded-xl border text-sm transition-colors ${interests.includes(cat) ? 'bg-orange-500 border-orange-500 text-white' : 'border-orange-500/30 text-gray-400 hover:border-orange-500/50 hover:text-orange-300'}`}>
+                  {cat}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Cross-sell */}
-          {result.cross_sell?.length > 0 && (
+          <div>
+            <label className="text-gray-400 text-sm mb-2 block">Əvvəlki alışlar</label>
+            <div className="flex flex-wrap gap-2">
+              {products.map((p) => (
+                <button key={p.id} onClick={() => toggleArr(purchased, setPurchased, p.name)}
+                  className={`px-3 py-1.5 rounded-xl border text-sm transition-colors ${purchased.includes(p.name) ? 'bg-orange-500 border-orange-500 text-white' : 'border-orange-500/30 text-gray-400 hover:border-orange-500/50 hover:text-orange-300'}`}>
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={submit} disabled={loading || !name.trim()}
+            className="self-start flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+            {loading ? 'Analiz edilir...' : 'Tövsiyə Al'}
+          </button>
+        </section>
+
+        {/* Results section */}
+        <section className="lg:sticky lg:top-6 bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 min-h-[420px]">
+          <div className="flex items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Tag size={20} className="text-orange-400" /> Əlavə tövsiyələr
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {result.cross_sell.map((c, i) => (
-                  <div key={i} className="bg-black/40 border border-orange-500/15 rounded-xl px-4 py-3 flex flex-col gap-1 max-w-xs">
-                    <span className="text-white text-sm font-semibold">{c.product_name}</span>
-                    <span className="text-gray-400 text-xs">{c.reason}</span>
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-xl font-bold text-white">AI Nəticə Paneli</h2>
+              <p className="text-gray-400 text-sm">Tövsiyələr burada ayrıca section kimi görünür.</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+              <Sparkles size={20} className="text-orange-400" />
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4 text-red-300 text-sm">
+              <AlertCircle size={18} /> {error}
             </div>
           )}
-        </div>
-      )}
+
+          {!result && !error && (
+            <div className="h-[320px] flex items-center justify-center text-center text-gray-500 text-sm border border-dashed border-orange-500/15 rounded-2xl px-6">
+              Tövsiyələri görmək üçün formu doldurub “Tövsiyə Al” düyməsinə basın.
+            </div>
+          )}
+
+          {result && (
+            <div className="flex flex-col gap-5">
+              <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 text-gray-300 text-sm italic">
+                💡 {result.insight}
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white mb-3">Tövsiyə olunan məhsullar</h3>
+                <div className="grid gap-4">
+                  {result.recommendations.map((r, i) => (
+                    <div key={i} className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 flex flex-col gap-3 hover:border-orange-500/50 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                        <ShoppingCart size={20} className="text-orange-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold">{r.product_name}</h4>
+                        <span className={`text-xs px-2 py-0.5 rounded-full border mt-1 inline-block ${r.priority === 'high' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'}`}>
+                          {r.priority === 'high' ? 'Yüksək prioritet' : 'Orta prioritet'}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-xs flex-1">{r.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {result.cross_sell?.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <Tag size={18} className="text-orange-400" /> Əlavə tövsiyələr
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {result.cross_sell.map((c, i) => (
+                      <div key={i} className="bg-black/40 border border-orange-500/15 rounded-xl px-4 py-3 flex flex-col gap-1 max-w-xs">
+                        <span className="text-white text-sm font-semibold">{c.product_name}</span>
+                        <span className="text-gray-400 text-xs">{c.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
