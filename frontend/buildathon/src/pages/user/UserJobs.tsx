@@ -170,7 +170,17 @@ export default function UserJobs() {
     };
     setSavedCv(true);
     if (user) {
-      await saveUserCv(user.id, payload.cv);
+      const cvPayload = payload.cv;
+      await saveUserCv(user.id, {
+        full_name: cvPayload.name,
+        email: cvPayload.email,
+        phone: cvPayload.phone,
+        education: cvPayload.education,
+        experience: cvPayload.experience || cvPayload.experience_years,
+        skills: cvPayload.skills || [],
+        projects: cvPayload.projects || [],
+        languages: cvPayload.languages || [],
+      });
     }
   }
 
