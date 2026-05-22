@@ -35,11 +35,10 @@ const USER_STEPS = [
 ];
 
 const ADMIN_STEPS = [
-  { n: '01', title: 'Admin Girişi',          desc: 'Qeydiyyatda "Admin" rolu seç. admin@supertraders.az / admin123 demo akkauntunu da istifadə edə bilərsən.' },
-  { n: '02', title: 'Elan İdarəsi',          desc: 'Navbar → "Elan İdarəsi". Yeni iş elanı yarat (şirkət, maaş, bacarıq tələbləri). Mövcud elanları redaktə et və ya sil.' },
-  { n: '03', title: 'Müraciətlərə Bax',      desc: 'Hər elanın altında müraciət edənlərin siyahısı var. Qəbul et (✓) və ya Rədd et (✗) düymələri ilə statusu dəyiş.' },
-  { n: '04', title: 'Maliyyə Analizi',       desc: '"Maliyyə Analizi" səhifəsindən "Maliyyə Analizini Başlat" düyməsini sıx. AI məhsul gəlirliliyini, maaş örtüm faizini hesablayır.' },
-  { n: '05', title: '«Nə olar əgər» Ssenari', desc: 'İşçi qəbulu, reklam xərci, qiymət/həcm dəyişikliyi ssenarilərini seç, parametrləri daxil et, nəticəyə bax.' },
+  { n: '01', title: 'Elan İdarəsi',          desc: 'Navbar → "Elan İdarəsi". Yeni iş elanı yarat (şirkət, maaş, bacarıq tələbləri). Mövcud elanları redaktə et və ya sil.' },
+  { n: '02', title: 'Müraciətlərə Bax',      desc: 'Hər elanın altında müraciət edənlərin siyahısı var. Qəbul et (✓) və ya Rədd et (✗) düymələri ilə statusu dəyiş.' },
+  { n: '03', title: 'Maliyyə Analizi',       desc: '"Maliyyə Analizi" səhifəsindən "Maliyyə Analizini Başlat" düyməsini sıx. AI məhsul gəlirliliyini, maaş örtüm faizini hesablayır.' },
+  { n: '04', title: '«Nə olar əgər» Ssenari', desc: 'İşçi qəbulu, reklam xərci, qiymət/həcm dəyişikliyi ssenarilərini seç, parametrləri daxil et, nəticəyə bax.' },
 ];
 
 const AI_AGENTS = [
@@ -326,7 +325,6 @@ export default function About() {
             '«Nə olar əgər» ssenari: işçi, reklam, qiymət, həcm',
             'Admin: elan yarat/redaktə/sil, müraciətlərə bax',
             'Rol əsaslı giriş nəzarəti (RBAC)',
-            'Backend olmadıqda tam işləyən mock data fallback',
             'Azərbaycan dilində tam interfeys',
             'Framer Motion animasiyaları, responsive dizayn',
           ].map((f, i) => (
@@ -339,59 +337,6 @@ export default function About() {
           ))}
         </motion.div>
       </section>
-
-      {/* ── Run instructions ── */}
-      <section>
-        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}
-          className="bg-black/50 border border-orange-500/20 rounded-2xl p-8 space-y-6"
-        >
-          <div className="text-center">
-            <span className="text-orange-400 text-xs font-bold uppercase tracking-widest">Quraşdırma</span>
-            <h2 className="text-2xl font-extrabold text-white mt-2">Necə İşə Salmaq Olar?</h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Code2 size={16} className="text-green-400" />
-                <span className="text-white font-semibold text-sm">Backend (FastAPI)</span>
-              </div>
-              <pre className="bg-black/60 border border-white/10 rounded-xl p-4 text-xs text-gray-300 font-mono overflow-x-auto leading-relaxed">
-{`# Kök qovluqda
-pip install -r backend/requirements.txt
-
-# .env faylı yarat
-echo GROQ_API_KEY=your_key > backend/.env
-
-# Serveri başlat
-python -m uvicorn backend.main:app \\
-  --reload --port 8000`}
-              </pre>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Globe size={16} className="text-sky-400" />
-                <span className="text-white font-semibold text-sm">Frontend (React + Vite)</span>
-              </div>
-              <pre className="bg-black/60 border border-white/10 rounded-xl p-4 text-xs text-gray-300 font-mono overflow-x-auto leading-relaxed">
-{`# Frontend qovluğuna keç
-cd frontend/buildathon
-
-# Paketləri yüklə
-npm install
-
-# Development server
-npm run dev
-
-# → http://localhost:5173`}
-              </pre>
-            </div>
-          </div>
-          <p className="text-center text-gray-600 text-xs">
-            Backend olmasa belə frontend tam işləyir — mock data və lokal AI fallback aktivdir.
-          </p>
-        </motion.div>
-      </section>
-
       {/* ── Author / Links ── */}
       <section className="pb-8">
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}
