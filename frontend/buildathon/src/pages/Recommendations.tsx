@@ -1,121 +1,196 @@
-import { useState } from 'react';
-import { Sparkles, ShoppingCart, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, ShoppingCart, Loader2, AlertCircle, Tag } from 'lucide-react';
+import {
+  getSalesProducts,
+  getSalesRecommendations,
+  type Product,
+  type SalesResult,
+} from '../services/api';
 
-const CATEGORIES = ['Elektronika', 'Geyim', 'Ərzaq', 'İdman', 'Ev əşyaları', 'Kosmetika'];
-
-const PRODUCTS: Record<string, { name: string; price: string; rating: number; reason: string }[]> = {
-  Elektronika: [
-    { name: 'Simsiz Qulaqlıq', price: '129 AZN', rating: 4.8, reason: 'Elektronika alıcıları tez-tez seçir' },
-    { name: 'Smartfon Şarj Aleti', price: '35 AZN', rating: 4.6, reason: 'Yüksək tələbat, sürətli satış' },
-    { name: 'USB-C Hub', price: '55 AZN', rating: 4.5, reason: 'Laptop istifadəçiləri üçün ideal' },
-  ],
-  Geyim: [
-    { name: 'Oversize Köynək', price: '45 AZN', rating: 4.7, reason: 'Bu mövsümün ən çox satılanı' },
-    { name: 'Krossovka', price: '120 AZN', rating: 4.9, reason: 'Yüksək reytinqli məhsul' },
-    { name: 'Kepka', price: '25 AZN', rating: 4.4, reason: 'Geyim sevənlər üçün tamamlayıcı' },
-  ],
-  Ərzaq: [
-    { name: 'Üzvi Bal (500q)', price: '18 AZN', rating: 4.9, reason: 'Ən çox satılan ərzaq məhsulu' },
-    { name: 'Quru Meyvə Dəsti', price: '22 AZN', rating: 4.7, reason: 'Sağlıqlı həyat seçimi' },
-    { name: 'Zeytun Yağı', price: '30 AZN', rating: 4.8, reason: 'Premium keyfiyyət, daim tələb' },
-  ],
-  İdman: [
-    { name: 'Rezin Kəmər', price: '40 AZN', rating: 4.6, reason: 'Ev idmanı üçün əsas vasitə' },
-    { name: 'İdman Çantası', price: '65 AZN', rating: 4.5, reason: 'İdmançılar tərəfindən sevilir' },
-    { name: 'Su Şüşəsi (1L)', price: '20 AZN', rating: 4.7, reason: 'Hər idmançıya lazım' },
-  ],
-  'Ev əşyaları': [
-    { name: 'Dekorativ Yastıq', price: '35 AZN', rating: 4.5, reason: 'Ev dekorunu tamamlayır' },
-    { name: 'Aromaterapi Şam', price: '28 AZN', rating: 4.8, reason: 'Çox alınan hədiyyəlik məhsul' },
-    { name: 'Rəf Sistemi', price: '75 AZN', rating: 4.6, reason: 'Ev təşkilatı üçün ideal' },
-  ],
-  Kosmetika: [
-    { name: 'Üz Kremi SPF50', price: '55 AZN', rating: 4.9, reason: 'Dermatologlar tövsiyə edir' },
-    { name: 'Saç Maskası', price: '40 AZN', rating: 4.7, reason: 'Ən çok satılan saç məhsulu' },
-    { name: 'Serum (Vitamin C)', price: '70 AZN', rating: 4.8, reason: 'Premium seqment lideri' },
-  ],
-};
+const GOALS = [
+  { value: 'bulk_order', label: 'Toplu sifariş' },
+  { value: 'repeat_purchase', label: 'Təkrar alış' },
+  { value: 'career_growth', label: 'Karyera inkişafı' },
+];
 
 export default function Recommendations() {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [results, setResults] = useState<typeof PRODUCTS[string]>([]);
-  const [asked, setAsked] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [name, setName] = useState('');
+  const [goal, setGoal] = useState('repeat_purchase');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [purchased, setPurchased] = useState<string[]>([]);
+  const [result, setResult] = useState<SalesResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const toggle = (cat: string) =>
-    setSelected((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+  useEffect(() => {
+    getSalesProducts().then(setProducts).catch(() => setError('Məhsullar yüklənmədi'));
+  }, []);
 
-  const generate = () => {
-    const all = selected.flatMap((cat) => PRODUCTS[cat] ?? []);
-    setResults(all.sort(() => Math.random() - 0.5).slice(0, 6));
-    setAsked(true);
+  const toggleArr = (arr: string[], set: (v: string[]) => void, val: string) =>
+    set(arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]);
+
+  const categories = [...new Set(products.map((p) => p.category.toLowerCase()))];
+
+  const submit = async () => {
+    if (!name.trim()) return;
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const data = await getSalesRecommendations({
+        name: name.trim(),
+        goal,
+        interests,
+        purchase_history: purchased,
+      });
+      setResult(data);
+    } catch {
+      setError('Backend ilə əlaqə qurulamadı. Backend-in işlədiyini yoxlayın.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-4xl font-extrabold text-white mb-2 flex items-center gap-3">
           <Sparkles className="text-orange-400" size={36} /> AI Tövsiyələri
         </h1>
-        <p className="text-gray-400">Maraqlarınızı seçin, AI sizin üçün ən uyğun məhsulları tövsiyə etsin.</p>
+        <p className="text-gray-400">Müştəri profilini daxil edin, AI ən uyğun məhsulları ayrıca nəticə panelində göstərsin.</p>
       </div>
 
-      {/* Category selector */}
-      <div className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 mb-8">
-        <p className="text-white font-semibold mb-4">Hansı kateqoriyalar sizi maraqlandırır?</p>
-        <div className="flex flex-wrap gap-3">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => toggle(cat)}
-              className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                selected.includes(cat)
-                  ? 'bg-orange-500 border-orange-500 text-white'
-                  : 'border-orange-500/30 text-gray-400 hover:border-orange-500/60 hover:text-orange-300'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={generate}
-          disabled={selected.length === 0}
-          className="mt-6 flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors"
-        >
-          <Sparkles size={18} /> Tövsiyə Al
-        </button>
-      </div>
-
-      {/* Results */}
-      {asked && results.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4">Sizin üçün tövsiyə edilən məhsullar</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {results.map((p, i) => (
-              <div
-                key={i}
-                className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 flex flex-col gap-3 hover:border-orange-500/50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                  <ShoppingCart size={20} className="text-orange-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold">{p.name}</h3>
-                  <p className="text-orange-400 font-semibold text-sm">{p.price}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star size={14} className="text-orange-400 fill-orange-400" />
-                  <span className="text-gray-400 text-xs">{p.rating}</span>
-                </div>
-                <p className="text-gray-500 text-xs italic">"{p.reason}"</p>
-                <button className="mt-auto w-full py-2 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm font-medium hover:bg-orange-500/20 transition-colors">
-                  Səbətə Əlavə Et
-                </button>
-              </div>
-            ))}
+      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] items-start">
+        {/* Input section */}
+        <section className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 flex flex-col gap-5">
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Profil Məlumatı</h2>
+            <p className="text-gray-400 text-sm">Formu doldur və AI tövsiyələrini sağdakı paneldə gör.</p>
           </div>
-        </div>
-      )}
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-gray-400 text-sm mb-1 block">Ad / Şirkət adı</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Məs: Sara Məmmədova"
+                className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50"
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 text-sm mb-1 block">Məqsəd</label>
+              <select
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500/50"
+              >
+                {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-gray-400 text-sm mb-2 block">Maraqlar (kateqoriya)</label>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button key={cat} onClick={() => toggleArr(interests, setInterests, cat)}
+                  className={`px-3 py-1.5 rounded-xl border text-sm transition-colors ${interests.includes(cat) ? 'bg-orange-500 border-orange-500 text-white' : 'border-orange-500/30 text-gray-400 hover:border-orange-500/50 hover:text-orange-300'}`}>
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-gray-400 text-sm mb-2 block">Əvvəlki alışlar</label>
+            <div className="flex flex-wrap gap-2">
+              {products.map((p) => (
+                <button key={p.id} onClick={() => toggleArr(purchased, setPurchased, p.name)}
+                  className={`px-3 py-1.5 rounded-xl border text-sm transition-colors ${purchased.includes(p.name) ? 'bg-orange-500 border-orange-500 text-white' : 'border-orange-500/30 text-gray-400 hover:border-orange-500/50 hover:text-orange-300'}`}>
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={submit} disabled={loading || !name.trim()}
+            className="self-start flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+            {loading ? 'Analiz edilir...' : 'Tövsiyə Al'}
+          </button>
+        </section>
+
+        {/* Results section */}
+        <section className="lg:sticky lg:top-6 bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-6 min-h-[420px]">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-white">AI Nəticə Paneli</h2>
+              <p className="text-gray-400 text-sm">Tövsiyələr burada ayrıca section kimi görünür.</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+              <Sparkles size={20} className="text-orange-400" />
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4 text-red-300 text-sm">
+              <AlertCircle size={18} /> {error}
+            </div>
+          )}
+
+          {!result && !error && (
+            <div className="h-[320px] flex items-center justify-center text-center text-gray-500 text-sm border border-dashed border-orange-500/15 rounded-2xl px-6">
+              Tövsiyələri görmək üçün formu doldurub “Tövsiyə Al” düyməsinə basın.
+            </div>
+          )}
+
+          {result && (
+            <div className="flex flex-col gap-5">
+              <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 text-gray-300 text-sm italic">
+                💡 {result.insight}
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white mb-3">Tövsiyə olunan məhsullar</h3>
+                <div className="grid gap-4">
+                  {result.recommendations.map((r, i) => (
+                    <div key={i} className="bg-black/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 flex flex-col gap-3 hover:border-orange-500/50 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                        <ShoppingCart size={20} className="text-orange-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold">{r.product_name}</h4>
+                        <span className={`text-xs px-2 py-0.5 rounded-full border mt-1 inline-block ${r.priority === 'high' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'}`}>
+                          {r.priority === 'high' ? 'Yüksək prioritet' : 'Orta prioritet'}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-xs flex-1">{r.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {result.cross_sell?.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <Tag size={18} className="text-orange-400" /> Əlavə tövsiyələr
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {result.cross_sell.map((c, i) => (
+                      <div key={i} className="bg-black/40 border border-orange-500/15 rounded-xl px-4 py-3 flex flex-col gap-1 max-w-xs">
+                        <span className="text-white text-sm font-semibold">{c.product_name}</span>
+                        <span className="text-gray-400 text-xs">{c.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
