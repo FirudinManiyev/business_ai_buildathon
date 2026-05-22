@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Menu, X, LogOut, Package, Briefcase, User, ShieldCheck } from 'lucide-react';
+import { TrendingUp, Menu, X, LogOut, Package, Briefcase, User, ShieldCheck, House, Info, Calculator } from 'lucide-react';
 import { FaGithub, FaLinkedin } from 'react-icons/fa6';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,14 +16,21 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const guestLinks = [{ to: '/', label: 'Ana Səhifə' }];
-  const userLinks  = [
-    { to: '/products', label: 'Məhsullar', icon: <Package size={14} /> },
+  const guestLinks = [
+    { to: '/',       label: 'Ana Səhifə', icon: <House size={14} /> },
+    { to: '/about',  label: 'Haqqında',   icon: <Info size={14} /> },
+  ];
+  const userLinks = [
+    { to: '/',         label: 'Ana Səhifə',  icon: <House size={14} /> },
+    { to: '/products', label: 'Məhsullar',   icon: <Package size={14} /> },
     { to: '/jobs',     label: 'İş Elanları', icon: <Briefcase size={14} /> },
+    { to: '/about',    label: 'Haqqında',    icon: <Info size={14} /> },
   ];
   const adminLinks = [
-    { to: '/admin/jobs', label: 'Elan İdarəsi', icon: <Briefcase size={14} /> },
-    { to: '/finance',    label: 'Maliyyə',      icon: <TrendingUp size={14} /> },
+    { to: '/',           label: 'Ana Səhifə',     icon: <House size={14} /> },
+    { to: '/admin/jobs', label: 'Elan İdarəsi',   icon: <Briefcase size={14} /> },
+    { to: '/finance',    label: 'Maliyyə Analizi', icon: <Calculator size={14} /> },
+    { to: '/about',      label: 'Haqqında',        icon: <Info size={14} /> },
   ];
   const links = user ? (user.role === 'admin' ? adminLinks : userLinks) : guestLinks;
 
