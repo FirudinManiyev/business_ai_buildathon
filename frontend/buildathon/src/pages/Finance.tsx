@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Bot, Calculator, Loader2, AlertCircle, ArrowUp } from 'lucide-react';
-import { analyzeFinance, postWhatIf, type FinanceResult } from '../services/api';
+import { analyzeFinance, postWhatIf, getFinanceSummary, postFinanceChat, type FinanceResult } from '../services/api';
 
 export default function Finance() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<FinanceResult | null>(null);
   const [whatIfResult, setWhatIfResult] = useState<any | null>(null);
+  const [summary, setSummary] = useState<any | null>(null);
   const [wfAction, setWfAction] = useState('');
   const [wfCount, setWfCount] = useState('');
   const [wfSalaryPerHire, setWfSalaryPerHire] = useState('');
@@ -50,6 +51,19 @@ export default function Finance() {
   };
 
   const totalProfit = result?.product_analysis?.reduce((s, p) => s + p.net_profit, 0) ?? 0;
+
+  useEffect(() => {
+    getFinanceSummary().then((s) => setSummary(s)).catch(() => {});
+  }, []);
+
+  function formatCurrency(v: number | null | undefined) {
+    if (v === null || v === undefined) return '—';
+    try {
+      return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' USD';
+    } catch (e) {
+      return String(v) + ' USD';
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -103,6 +117,24 @@ export default function Finance() {
             <div className="mt-2"><strong>Recommendation:</strong> {whatIfResult.recommendation}</div>
           </div>
         )}
+
+        {/* Top-level summary cards (from /api/finance/summary) - shown even when detailed result is not loaded */}
+        {summary && (
+          <div className="mt-6 grid grid-cols-3 gap-4">
+            <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-4">
+              <div className="text-xs text-gray-400">Ümumi Gəlir</div>
+              <div className="text-2xl font-bold text-white">{formatCurrency(summary.total_revenue)}</div>
+            </div>
+            <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-4">
+              <div className="text-xs text-gray-400">Ümumi Xərc (COGS)</div>
+              <div className="text-2xl font-bold text-white">{formatCurrency(summary.cogs)}</div>
+            </div>
+            <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-4">
+              <div className="text-xs text-gray-400">Xalis Mənfəət</div>
+              <div className="text-2xl font-bold text-white">{formatCurrency(summary.gross_profit)}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -125,6 +157,24 @@ export default function Finance() {
               </p>
             </div>
           </div>
+
+          {/* Summary row */}
+          {summary && (
+            <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-4">
+                <div className="text-xs text-gray-400">Ümumi Gəlir</div>
+                <div className="text-2xl font-bold text-white">{formatCurrency(summary.total_revenue)}</div>
+              </div>
+              <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-4">
+                <div className="text-xs text-gray-400">Ümumi Xərc (COGS)</div>
+                <div className="text-2xl font-bold text-white">{formatCurrency(summary.cogs)}</div>
+              </div>
+              <div className="bg-black/50 border border-orange-500/20 rounded-2xl p-4">
+                <div className="text-xs text-gray-400">Xalis Mənfəət</div>
+                <div className="text-2xl font-bold text-white">{formatCurrency(summary.gross_profit)}</div>
+              </div>
+            </div>
+          )}
 
           {/* Product analysis */}
           <div>

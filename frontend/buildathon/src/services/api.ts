@@ -177,3 +177,9 @@ export const analyzeFinance = (whatif_scenario?: string) =>
 
 export const postWhatIf = (payload: any) =>
   http.post<any>('/finance/whatif', payload).then((r) => r.data);
+
+export const getFinanceSummary = () =>
+  http.get('/finance/summary').then((r) => r.data);
+
+export const postFinanceChat = (question: string) =>
+  http.post('/finance/chat', { question }).then((r) => r.data);

@@ -6,6 +6,19 @@ import json
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from fastapi import HTTPException
+
+from sqlalchemy import select, func
+try:
+    from ..db import SessionLocal
+    from ..models.product import Product
+    from ..models.order import Order
+    from ..models.user import User
+except ImportError:
+    from db import SessionLocal
+    from models.product import Product
+    from models.order import Order
+    from models.user import User
 
 try:
     from ..agents.finance_agent import finance_agent
@@ -49,6 +62,10 @@ class WhatIfSpec(BaseModel):
 class WhatIfRequest(BaseModel):
     base: WhatIfBase | None = None
     whatif: WhatIfSpec
+
+
+class ChatRequest(BaseModel):
+    question: str
 
 
 @router.get("/employees")
@@ -115,3 +132,65 @@ def whatif_finance(request: WhatIfRequest):
 
     result = finance_agent.apply_whatif(base, whatif)
     return result
+
+
+@router.get("/summary")
+def finance_summary() -> dict[str, float]:
+    session = SessionLocal()
+    try:
+        # total revenue from completed orders
+        total_revenue = session.execute(
+            select(func.sum(Order.total_price)).where(Order.status == "completed")
+        ).scalar() or 0.0
+
+        # total COGS: sum(quantity * product.cost_price) for completed orders
+        cogs_sum = session.execute(
+            select(func.sum(Order.quantity * Product.cost_price)).join(Product, Product.id == Order.product_id).where(Order.status == "completed")
+        ).scalar() or 0.0
+
+        total_orders = session.execute(select(func.count()).select_from(Order).where(Order.status == "completed")).scalar() or 0
+
+        gross_profit = float(total_revenue) - float(cogs_sum)
+
+        return {
+            "total_revenue": float(total_revenue),
+            "cogs": float(cogs_sum),
+            "gross_profit": float(gross_profit),
+            "total_orders": int(total_orders),
+        }
+    finally:
+        session.close()
+
+
+@router.post("/chat")
+def finance_chat(req: ChatRequest):
+    # Build a brief profile from DB and mock data
+    session = SessionLocal()
+    try:
+        products = [p.__dict__ for p in session.query(Product).all()]
+        # sanitize SQLAlchemy objects
+        for p in products:
+            p.pop("_sa_instance_state", None)
+
+        workers = list(WORKERS.values())
+
+        profile = {
+            "products": products,
+            "workers": workers,
+            "currency": "USD",
+        }
+    finally:
+        session.close()
+
+    # Use finance_agent to answer where possible, fallback to analyze
+    try:
+        if hasattr(finance_agent, "chat"):
+            answer = finance_agent.chat(req.question, profile)
+        else:
+            # attach question as a signal for analysis
+            profile["question"] = req.question
+            answer = finance_agent.analyze(profile)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"answer": answer}
